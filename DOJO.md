@@ -65,6 +65,11 @@ cd ecotrack
 # Every file participants create goes into an existing folder — no mkdir needed.
 ```
 
+> **IDE — point important pour les participants iOS :**
+> Utilisez **VS Code** avec l'extension [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) pour ce dojo — pas Xcode.
+> Les fichiers `.github/instructions/*.instructions.md` et `.github/prompts/*.prompt.md` sont lus automatiquement par Copilot dans VS Code.
+> Dans Xcode, cette intégration n'est pas disponible et les fichiers d'instructions seront ignorés.
+
 ### Repo structure at start
 
 ```
@@ -357,18 +362,27 @@ Rules: pure functions only, no I/O, no network calls, no Android imports.
 **Prompt iOS (copier-coller tel quel) :**
 ```
 My test file CarbonCalculatorTests.swift is failing because the production types do not exist yet.
-Create CarbonCalculator.swift in the Domain group with exactly these types:
+Create CarbonCalculator.swift in Sources/Domain/ with exactly these types:
 
 enum ActionCategory { case transport, food, energy, consumption, waste }
 
+enum CarbonDeltaError: Error { case notFinite }
+enum FootprintBaselineError: Error { case notPositive }
+
 struct CarbonDelta {
     let kgCO2e: Double
-    init(_ value: Double) { precondition(value.isFinite); self.kgCO2e = value }
+    init(_ value: Double) throws {
+        guard value.isFinite else { throw CarbonDeltaError.notFinite }
+        self.kgCO2e = value
+    }
 }
 
 struct FootprintBaseline {
     let tCO2ePerYear: Double
-    init(_ value: Double) { precondition(value.isFinite && value > 0); self.tCO2ePerYear = value }
+    init(_ value: Double) throws {
+        guard value.isFinite && value > 0 else { throw FootprintBaselineError.notPositive }
+        self.tCO2ePerYear = value
+    }
 }
 
 struct CarbonInput {
@@ -378,7 +392,7 @@ struct CarbonInput {
 }
 
 enum CarbonCalculator {
-    static func calculate(_ input: CarbonInput) -> CarbonDelta { fatalError("TODO") }
+    static func calculate(_ input: CarbonInput) throws -> CarbonDelta { fatalError("TODO") }
 }
 
 enum FootprintCalculator {
@@ -393,9 +407,11 @@ ADEME 2024 emission factors (kgCO2e/km):
 - flight = 0.255
 
 Formula: delta = (chosenFactor - carFactor) * distanceKm
-Special "avoided X": delta = (0.0 - xFactor) * distanceKm
+Special "avoided X" (name starts with "avoided"): delta = (0.0 - xFactor) * distanceKm
+Example: "Avoided flight" 5000 km → (0.0 - 0.255) * 5000 = -1275 kgCO2e
 
 Rules: pure functions only, no UIKit, no network calls.
+Use XCTAssertThrowsError to test invalid inputs in CarbonCalculatorTests.swift.
 ```
 
 **The orchestration insight:** Copilot's implementation is constrained by three layers it can see simultaneously:

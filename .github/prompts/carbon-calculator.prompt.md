@@ -50,7 +50,7 @@ Normal action:  delta = (chosenFactor - CAR_FACTOR) * distanceKm
 
 Generate a test class named:
 - Android: `CarbonCalculatorTest` in `src/test/kotlin/domain/`
-- iOS: `CarbonCalculatorTests` in `EcoTrackTests/Domain/`
+- iOS: `CarbonCalculatorTests` in `Tests/Domain/`
 
 ### Requirements for the test class
 
