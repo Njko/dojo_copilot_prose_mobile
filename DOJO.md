@@ -57,6 +57,27 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 
 **Facilitator response:** *"That changes right now. Welcome to PROSE."*
 
+### Démo facilitateur — 3 minutes (à faire en live avant le setup)
+
+> Cette démo est **obligatoire**. Sans elle, les participants n'ont aucune preuve que les fichiers `.instructions.md` sont réellement lus par Copilot. Elle transforme "magie invisible" en mécanique observable.
+
+**Script :**
+
+1. Ouvrir VS Code avec le repo cloné
+2. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+3. Taper dans le chat : *"Write a function that calculates carbon saved."*
+4. Montrer la réponse : noms génériques, pas de langage domaine, probablement un réseau ou une DB
+5. Créer en live un fichier `.github/copilot-instructions.md` vide avec une seule règle : *"Use the term CarbonDelta for any carbon calculation result."*
+6. Retaper la même question dans le chat
+7. Montrer que le terme `CarbonDelta` apparaît maintenant dans la réponse
+
+**Message pédagogique :** *"Ce fichier vient de changer le comportement de Copilot. C'est la lettre E de PROSE — Explicit Hierarchy. C'est ce qu'on va construire ensemble."*
+
+**Pour référencer un fichier existant dans Copilot Chat (syntaxe exacte) :**
+- Taper `#` dans la zone de chat → une liste de fichiers apparaît
+- Sélectionner le fichier ou taper son nom
+- Copilot inclut automatiquement le contenu dans son contexte
+
 ### Setup commands
 ```bash
 git clone <dojo-repo>
@@ -203,9 +224,17 @@ It should:
 
 ### Step 3B — Run the BDD prompt (live generation)
 
-**Participants open** `.github/prompts/habit-bdd.prompt.md` in Copilot Chat.
+**Comment exécuter un fichier `.prompt.md` dans Copilot Chat — procédure exacte :**
 
-> **Important :** Copilot ne substitue pas les `{{variables}}` automatiquement. Avant d'exécuter, remplace `{{HABIT_CATEGORY}}` par la valeur souhaitée directement dans le fichier (ou dans la zone de chat).
+1. Ouvrir le fichier `habit-bdd.prompt.md` dans l'éditeur VS Code
+2. Remplacer `{{HABIT_CATEGORY}}` par `transport` directement dans le fichier (sauvegarde avec `Ctrl+S`)
+3. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+4. Dans la zone de saisie du chat, taper `#` puis sélectionner `habit-bdd.prompt.md` dans la liste
+5. Appuyer sur `Entrée` — Copilot lit le fichier et génère les scénarios
+
+> **Alternative si `#` ne fonctionne pas :** copier tout le contenu du fichier (`Ctrl+A` → `Ctrl+C`) et le coller directement dans le chat.
+
+> **Important :** Copilot ne substitue pas les `{{variables}}` automatiquement — remplace-les dans le fichier avant l'étape 4, sinon la variable `{{HABIT_CATEGORY}}` apparaîtra telle quelle dans les scénarios générés.
 
 Run with `{{HABIT_CATEGORY}}` replaced by `transport` (cycling, walking, public transit).
 
@@ -252,6 +281,75 @@ Participants will execute this three-step pipeline, where each output feeds the 
 [spec.md] ──▶ [BDD scenarios] ──▶ [Failing tests] ──▶ [Implementation]
               (Phase 3 output)    (Step 4A)              (Step 4B)
 ```
+
+### Démo facilitateur — Le cycle Rouge → Vert (2 min, avant Step 4A)
+
+> Cette démo est **obligatoire**. Sans elle, "écrire un test qui échoue intentionnellement" reste contre-intuitif et paraît être une erreur. La voir en action lève le blocage mental.
+
+**Script (30 secondes de code, 90 secondes d'explication) :**
+
+**Android :** Ouvrir `CarbonCalculatorTest.kt`, clic droit sur la classe → *Run CarbonCalculatorTest*. Les tests sont rouges. Montrer la sortie rouge. Puis ouvrir `CarbonCalculator.kt` — les `TODO()` sont là. Remplacer le premier `TODO()` par une implémentation minimale. Relancer. Montrer le premier test passer en vert.
+
+**iOS :** Dans le terminal VS Code : `cd ecotrack-ios && swift test`. Montrer les `✗` rouges. Ouvrir `CarbonCalculator.swift`, implémenter la première fonction. Relancer `swift test`. Montrer le premier `✓` vert.
+
+**Message pédagogique :** *"Rouge = le test sait ce qu'il veut. Vert = le code l'a satisfait. On ne code que pour passer du rouge au vert. Rien de plus."*
+
+---
+
+### Setup technique avant de commencer — Android (JUnit5)
+
+> **Le projet fourni est pré-configuré.** Ce bloc est pour les participants qui travaillent sur leur propre projet Android et veulent reproduire le setup après le dojo.
+
+Les dépendances JUnit5 + AssertJ à ajouter dans `app/build.gradle` :
+
+```kotlin
+// app/build.gradle.kts
+android {
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+    testImplementation("org.assertj:assertj-core:3.24.2")
+}
+```
+
+Voir le détail complet dans [`ecotrack-android/docs/junit5-setup.md`](../ecotrack-android/docs/junit5-setup.md).
+
+**Lancer les tests Android :**
+- Android Studio : clic droit sur la classe de test → *Run*
+- Ligne de commande : `./gradlew test`
+- Résultats HTML : `app/build/reports/tests/test/index.html`
+
+---
+
+### Setup technique avant de commencer — iOS (VS Code + Swift)
+
+> Le projet iOS utilise Swift Package Manager — aucun `.xcodeproj` nécessaire.
+
+**Prérequis :** Swift installé (`swift --version` dans le terminal).
+
+**Lancer les tests iOS depuis VS Code :**
+```bash
+cd ecotrack-ios
+swift test                                    # tous les tests
+swift test --filter CarbonCalculatorTests     # un fichier de test
+```
+
+**Lire la sortie :**
+```
+✓ test_cyclingCommute_producesNegativeDelta   ← vert (passé)
+✗ test_avoidedFlight_returns1275kgCO2e       ← rouge (échec)
+```
+
+**Alternative graphique :** Installer l'extension VS Code **"Swift"** (ID : `sswg.swift-lang`) → les tests apparaissent dans le panneau Testing avec des boutons ▶.
+
+Voir le détail complet dans [`ecotrack-ios/docs/run-tests-vscode.md`](../ecotrack-ios/docs/run-tests-vscode.md).
+
+---
 
 ### Step 4A — Generate failing tests from BDD scenarios
 

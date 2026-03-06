@@ -9,6 +9,8 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
+    // JUnit5 support for Android unit tests (JVM layer — no emulator required)
+    id("de.mannodermaus.android-junit5") version "1.10.0.0"
 }
 
 android {
@@ -50,6 +52,10 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true  // Required for Robolectric
+            all { test ->
+                // Enable JUnit Platform so Gradle discovers JUnit5 tests
+                test.useJUnitPlatform()
+            }
         }
     }
 }
@@ -146,12 +152,28 @@ dependencies {
     // Test dependencies
     // ---------------------------------------------------------------------------
 
-    // Unit tests
+    // Unit tests — JUnit4 (kept for HabitTest and LogHabitCompletionUseCaseTest)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.turbine)  // Flow testing
+
+    // ---------------------------------------------------------------------------
+    // JUnit5 — required by CarbonCalculatorTest (Phase 4 PROSE Dojo)
+    // ---------------------------------------------------------------------------
+    // JUnit5 is NOT bundled with Android Studio by default.
+    // These three lines are the minimum required to run @Test / @DisplayName
+    // tests that use org.junit.jupiter.* APIs.
+    //
+    // Plugin: de.mannodermaus.android-junit5 (declared in the plugins block above)
+    // bridges the Android Gradle Plugin with the JUnit Platform.
+    // See docs/junit5-setup.md for a full explanation.
+    // ---------------------------------------------------------------------------
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+    // AssertJ — fluent assertions library (optional, enriches assertion readability)
+    testImplementation("org.assertj:assertj-core:3.24.2")
 
     // Instrumented tests
     androidTestImplementation(libs.androidx.test.ext.junit)

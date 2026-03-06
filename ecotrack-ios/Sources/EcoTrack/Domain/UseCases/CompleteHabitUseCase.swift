@@ -6,7 +6,9 @@
 // and repository ports. No framework dependencies.
 
 import Foundation
+#if canImport(OSLog)
 import OSLog
+#endif
 
 // MARK: - CompleteHabitUseCase
 
@@ -23,7 +25,9 @@ import OSLog
 public struct CompleteHabitUseCase: Sendable {
 
     private let habitRepository: any HabitRepository
+    #if canImport(OSLog)
     private let logger = Logger(subsystem: "com.ecotrack.app", category: "CompleteHabitUseCase")
+    #endif
 
     public init(habitRepository: any HabitRepository) {
         self.habitRepository = habitRepository
@@ -45,11 +49,13 @@ public struct CompleteHabitUseCase: Sendable {
         // Step 1: Fetch the habit - use habitRepository.fetchHabit(by:)
         // Step 2: Call habit.completing(on:note:)
         // Step 3: Save the updated habit - use habitRepository.save(_:)
-        // Step 4: Log the event with OSLog (no PII, no habit content in logs)
+        // Step 4: Log the event with OSLog on Apple platforms (no PII, no habit content in logs)
         // Step 5: Return the updated habit
 
         // Log only IDs, never user content
+        #if canImport(OSLog)
         logger.info("Completing habit \(habitID, privacy: .public) on \(date, privacy: .private)")
+        #endif
 
         throw HabitError.habitNotFound(habitID) // Remove this line when implementing
     }
