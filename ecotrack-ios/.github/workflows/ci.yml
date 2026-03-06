@@ -1,0 +1,285 @@
+name: EcoTrack iOS CI
+
+# Trigger: all pushes and PRs to main/develop
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# Cancel in-progress runs for the same branch to save CI minutes (eco-conception)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Minimal required permissions (security best practice)
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+env:
+  XCODE_VERSION: "16.2"
+  SCHEME: "EcoTrack"
+  WORKSPACE: "EcoTrack.xcworkspace"
+  DESTINATION: "platform=iOS Simulator,name=iPhone 16,OS=18.2"
+  # No secrets hardcoded — all credentials come from GitHub Secrets
+
+jobs:
+  # ============================================================
+  # JOB 1: Build & Unit Tests
+  # Fast feedback — runs on every push
+  # ============================================================
+  unit-tests:
+    name: Build + Unit Tests
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Show build environment
+        run: |
+          xcodebuild -version
+          xcrun simctl list devicetypes | grep "iPhone 16"
+          swift --version
+
+      # Cache DerivedData for faster builds (eco-conception: reduce CI energy use)
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ hashFiles('**/*.xcodeproj/project.pbxproj', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "${{ env.DESTINATION }}" \
+            | xcbeautify --quiet
+
+      - name: Build for testing
+        run: |
+          xcodebuild build-for-testing \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "${{ env.DESTINATION }}" \
+            -configuration Debug \
+            -enableAddressSanitizer YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test-without-building \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "${{ env.DESTINATION }}" \
+            -testPlan "UnitTests" \
+            -enableCodeCoverage YES \
+            -resultBundlePath TestResults/unit-tests.xcresult \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify
+
+      - name: Upload unit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results-${{ github.run_number }}
+          path: TestResults/unit-tests.xcresult
+          retention-days: 7
+
+      - name: Export code coverage report
+        if: success()
+        run: |
+          xcrun xccov view --report \
+            TestResults/unit-tests.xcresult \
+            --json > coverage.json
+          echo "## Code Coverage" >> $GITHUB_STEP_SUMMARY
+          xcrun xccov view --report TestResults/unit-tests.xcresult >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================
+  # JOB 2: UI Tests (runs on PRs to main only — slower)
+  # ============================================================
+  ui-tests:
+    name: UI Tests
+    runs-on: macos-15
+    timeout-minutes: 45
+    # Only run on PRs targeting main to conserve CI minutes
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ hashFiles('**/*.xcodeproj/project.pbxproj', '**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
+
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available | grep "iPhone 16 (" | head -1 | grep -oE '[A-F0-9-]{36}')
+          echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot $UDID || true
+
+      - name: Run UI tests
+        run: |
+          xcodebuild test \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "id=${{ env.SIMULATOR_UDID }}" \
+            -testPlan "UITests" \
+            -resultBundlePath TestResults/ui-tests.xcresult \
+            -test-timeouts-enabled YES \
+            -maximum-test-execution-time-allowance 60 \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify
+
+      - name: Upload UI test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-results-${{ github.run_number }}
+          path: TestResults/ui-tests.xcresult
+          retention-days: 7
+
+  # ============================================================
+  # JOB 3: Static Analysis & Lint
+  # ============================================================
+  lint:
+    name: SwiftLint + Static Analysis
+    runs-on: macos-15
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run SwiftLint
+        run: |
+          if which swiftlint >/dev/null; then
+            swiftlint lint --reporter github-actions-logging
+          else
+            echo "SwiftLint not installed. Install via: brew install swiftlint"
+            exit 1
+          fi
+
+      - name: Run Swift build with warnings-as-errors
+        run: |
+          xcodebuild build \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "${{ env.DESTINATION }}" \
+            -configuration Debug \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify
+
+  # ============================================================
+  # JOB 4: Accessibility Audit (XCTest-based)
+  # ============================================================
+  accessibility-audit:
+    name: Accessibility Audit
+    runs-on: macos-15
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
+
+      - name: Run accessibility tests
+        run: |
+          xcodebuild test \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
+            -destination "${{ env.DESTINATION }}" \
+            -testPlan "AccessibilityTests" \
+            -resultBundlePath TestResults/a11y-tests.xcresult \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcbeautify
+
+      - name: Upload accessibility test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a11y-test-results-${{ github.run_number }}
+          path: TestResults/a11y-tests.xcresult
+          retention-days: 7
+
+  # ============================================================
+  # JOB 5: Security Scan
+  # ============================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan for hardcoded secrets (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Check for PII in log statements
+        # Fail if logger calls contain known PII patterns without .private
+        run: |
+          echo "Scanning for potentially unmasked PII in OSLog calls..."
+          # Check for email patterns in log statements without privacy: .private
+          if grep -rn 'logger\.' Sources/ | grep -E '(email|password|token|ssn|phone)' | grep -v 'privacy: .private'; then
+            echo "WARNING: Potential PII in log statements without privacy mask"
+            exit 1
+          fi
+          echo "No unmasked PII patterns detected."
+
+  # ============================================================
+  # STATUS CHECK — required for branch protection
+  # ============================================================
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [unit-tests, lint, security-scan]
+    if: always()
+
+    steps:
+      - name: Check all required jobs passed
+        run: |
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "Unit tests failed"
+            exit 1
+          fi
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then
+            echo "Lint failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security-scan.result }}" != "success" ]]; then
+            echo "Security scan failed"
+            exit 1
+          fi
+          echo "All required CI checks passed."
