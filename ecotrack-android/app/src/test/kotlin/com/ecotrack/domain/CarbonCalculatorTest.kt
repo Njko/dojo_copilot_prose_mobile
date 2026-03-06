@@ -22,8 +22,11 @@ import kotlin.math.abs
 class CarbonCalculatorTest {
 
     // -----------------------------------------------------------------------
-    // Scenario 1: "User logs a cycling commute"
-    // Cycling 12 km → delta = (0.0 - 0.15) * 12 = -1.8 kgCO2e
+    // Scenario 1 — "User logs a cycling commute"
+    //
+    // Given a Transport action named "Cycling commute" over 12 km
+    // When CarbonCalculator.calculate() is called
+    // Then the delta is (0.0 − 0.15) × 12 = −1.8 kgCO₂e  (tolerance 0.001)
     // -----------------------------------------------------------------------
 
     @Test
@@ -37,19 +40,19 @@ class CarbonCalculatorTest {
 
         val delta = CarbonCalculator.calculate(input)
 
-        val expected = -1.8
-        val tolerance = 0.001
         assertEquals(
             true,
-            abs(delta.kgCO2e - expected) < tolerance,
-            "Expected delta ≈ $expected kgCO2e for cycling 12 km, got ${delta.kgCO2e}"
+            abs(delta.kgCO2e - (-1.8)) < 0.001,
+            "Expected −1.8 kgCO₂e for cycling 12 km, got ${delta.kgCO2e}"
         )
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 2: "Zero-delta action does not cause division by zero"
-    // Reusable Cup (Consumption) → delta = 0.0
-    // percentageOf(0.0, someBaseline) must not throw
+    // Scenario 2 — "Zero-delta action does not cause division by zero"
+    //
+    // Given a Consumption action (Reusable Cup) with no distance
+    // When calculate() is called, the delta must be 0.0
+    // And when percentageOf() is called with that delta, no exception is thrown
     // -----------------------------------------------------------------------
 
     @Test
@@ -64,7 +67,7 @@ class CarbonCalculatorTest {
 
         assertEquals(0.0, delta.kgCO2e, 0.001)
 
-        val baseline = FootprintBaseline(tCO2ePerYear = 8.5) // average French footprint
+        val baseline = FootprintBaseline(tCO2ePerYear = 8.5)
 
         assertDoesNotThrow {
             FootprintCalculator.percentageOf(delta, baseline)
@@ -72,37 +75,15 @@ class CarbonCalculatorTest {
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 3: "Long-haul flight avoided is calculated correctly"
-    // Flight 5000 km → delta = (0.255 - 0.15) * 5000... wait —
-    // per spec: avoided flight means cycling/0.0 factor vs CAR baseline
-    // BUT the name contains "flight" → factor = 0.255
-    // delta = (0.255 - 0.15) * 5000 = 525 kgCO2e (positive: flight emits MORE than car)
+    // Scenario 3 — "Long-haul flight avoided is calculated correctly"
     //
-    // Re-reading spec: "Avoided flight 5000 km → delta = (0.0 - 0.255) * 5000 = -1275"
-    // This uses factor 0.0 (as if the person chose NOT to fly, i.e. cycling/walking).
-    // The action name in the BDD scenario is "Avoided flight" — the key word is "cycling"
-    // or the mode chosen. Since the spec maps name "cycling" to factor 0.0, and the
-    // avoided-flight scenario produces -1275, the action name must resolve to factor 0.0.
-    // We model this as: when the action name contains "cycling" or "bike" etc.
-    // For the test we use a name that resolves to CYCLING (0.0) with distanceKm=5000.
-    // delta = (0.0 - 0.15) * 5000 = -750 kgCO2e  ← NOT -1275
+    // Given a Transport action "Avoided flight" over 5000 km
+    // When calculate() is called
+    // Then the delta is (0.0 − 0.255) × 5000 = −1275 kgCO₂e  (tolerance 1.0)
     //
-    // To get -1275: (0.0 - 0.255) * 5000 = -1275
-    // This means CAR baseline = FLIGHT factor. The formula in the spec is actually:
-    //   delta = (chosenFactor - referenceFactor) where reference = FLIGHT for avoided-flight.
-    // OR the spec means: the "avoided" mode factor is 0.0 (not taken) vs FLIGHT=0.255.
-    //
-    // Most coherent reading of spec:
-    //   "delta = (emissionFactor - CAR_FACTOR) * distanceKm" is the GENERAL transport formula.
-    //   For "avoided flight": emissionFactor = 0.0 (you didn't take the flight),
-    //   but CAR_FACTOR here means the FLIGHT factor (the baseline for the comparison).
-    //
-    // The spec examples show TWO different baselines:
-    //   1. Cycling vs Car  : (0.0 - 0.15) * 12 = -1.8    → baseline = CAR
-    //   2. Avoided flight  : (0.0 - 0.255) * 5000 = -1275 → baseline = FLIGHT
-    //
-    // Therefore: for "avoided flight" the reference is the flight factor.
-    // We model this by detecting "avoided flight" in the name and using FLIGHT as baseline.
+    // Rationale: "Avoided X" means the user did NOT take mode X.
+    // Chosen emission factor = 0.0 (no travel);  reference = X's factor (0.255).
+    // Source: ADEME 2024, flight = 0.255 kgCO₂e/km.
     // -----------------------------------------------------------------------
 
     @Test
@@ -110,67 +91,30 @@ class CarbonCalculatorTest {
     fun `long-haul flight avoided is calculated correctly`() {
         val input = CarbonInput(
             category = ActionCategory.Transport,
-            name = "Avoided flight — took train instead",
+            name = "Avoided flight",
             distanceKm = 5000.0
         )
 
         val delta = CarbonCalculator.calculate(input)
 
-        // Expected: train factor vs flight factor = (0.03 - 0.255) * 5000 = -1125
-        // But spec says -1275 which is (0.0 - 0.255) * 5000.
-        // To match spec exactly, we need an action that resolves to 0.0 AND uses FLIGHT baseline.
-        // The simplest interpretation: action name resolves to CYCLING (0.0 factor)
-        // but the distance is what the flight would have covered.
-        // Re-test with a name that clearly maps to "cycling" over a 5000 km route:
-        val cyclingInput = CarbonInput(
-            category = ActionCategory.Transport,
-            name = "cycling instead of flying",
-            distanceKm = 5000.0
-        )
-        val cyclingDelta = CarbonCalculator.calculate(cyclingInput)
-
-        // (0.0 - 0.15) * 5000 = -750.0  (cycling vs car baseline)
-        // The spec -1275 requires flight as baseline. We test the spec-stated value
-        // using a dedicated "avoided flight" scenario where the baseline is flight factor:
-        val avoidedFlightInput = CarbonInput(
-            category = ActionCategory.Transport,
-            name = "avoided flight",
-            distanceKm = 5000.0
-        )
-        val avoidedFlightDelta = CarbonCalculator.calculate(avoidedFlightInput)
-
-        // "avoided flight" name → contains "flight" → factor = FLIGHT (0.255)
-        // delta = (0.255 - 0.15) * 5000 = +525.0  (flight emits MORE than car)
-        // That is not -1275 either.
-        //
-        // Conclusion: to produce -1275 per spec, the calculator must treat
-        // "avoided flight" as (0.0 - 0.255) * 5000.  This requires a special
-        // "avoided" prefix logic.  We implement: if name starts with "avoided",
-        // factor = 0.0 and reference = factor of the named mode.
-        // This is handled by the enhanced CarbonCalculator (see production code).
-        val expected = -1275.0
-        val tolerance = 1.0
         assertEquals(
             true,
-            abs(avoidedFlightDelta.kgCO2e - expected) < tolerance,
-            "Expected delta ≈ $expected kgCO2e for avoided 5000 km flight, got ${avoidedFlightDelta.kgCO2e}"
+            abs(delta.kgCO2e - (-1275.0)) < 1.0,
+            "Expected −1275 kgCO₂e for avoided 5000 km flight, got ${delta.kgCO2e}"
         )
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 4: "Carbon calculation works offline"
-    // Architecture test: CarbonCalculator has no network dependency.
-    // Verified by the absence of any I/O or network import in its compilation
-    // unit. This test exercises the calculator with no network available.
+    // Scenario 4 — "Carbon calculation works offline"
+    //
+    // CarbonCalculator is a pure-function object with no I/O or network calls.
+    // In a JVM unit-test environment with no real network, the calculation
+    // must complete successfully — confirming no network dependency exists.
     // -----------------------------------------------------------------------
 
     @Test
     @DisplayName("Carbon calculation works offline")
     fun `carbon calculation works offline`() {
-        // If CarbonCalculator had a network call it would either fail or throw
-        // when the network is unavailable.  In a pure unit-test JVM environment
-        // no real network is present.  This test confirms the computation
-        // completes successfully — proving no network dependency exists.
         val input = CarbonInput(
             category = ActionCategory.Transport,
             name = "Cycling to the office",
@@ -179,14 +123,16 @@ class CarbonCalculatorTest {
 
         assertDoesNotThrow {
             val delta = CarbonCalculator.calculate(input)
-            // Also verify the result is sensible — cycling always saves vs car
-            assertEquals(true, delta.kgCO2e < 0.0, "Cycling should produce a negative delta")
+            // Cycling always saves vs the car baseline → result must be negative
+            assertEquals(true, delta.kgCO2e < 0.0, "Cycling delta must be negative")
         }
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 5: "CarbonDelta is always finite"
-    // NaN and Infinity must be rejected by the CarbonDelta constructor.
+    // Scenario 5 — "CarbonDelta is always finite"
+    //
+    // NaN and ±Infinity must be rejected by the CarbonDelta value-object
+    // constructor with an IllegalArgumentException.
     // -----------------------------------------------------------------------
 
     @Test
@@ -206,8 +152,11 @@ class CarbonCalculatorTest {
     }
 
     // -----------------------------------------------------------------------
-    // Scenario 6: "FootprintBaseline must be positive"
-    // Negative or zero baseline must be rejected at construction time.
+    // Scenario 6 — "FootprintBaseline must be positive"
+    //
+    // Zero, negative, and NaN baselines must be rejected at construction time
+    // with an IllegalArgumentException.
+    // A strictly positive value must be accepted without exception.
     // -----------------------------------------------------------------------
 
     @Test
@@ -225,7 +174,6 @@ class CarbonCalculatorTest {
             FootprintBaseline(tCO2ePerYear = Double.NaN)
         }
 
-        // A strictly positive value must be accepted without exception
         assertDoesNotThrow {
             FootprintBaseline(tCO2ePerYear = 0.001)
         }

@@ -11,8 +11,6 @@ package com.ecotrack.domain
 //   E - Explicit: KDoc on every public type and function
 // ---------------------------------------------------------------------------
 
-import kotlin.math.abs
-
 // ---------------------------------------------------------------------------
 // Action category hierarchy
 // ---------------------------------------------------------------------------
@@ -176,36 +174,57 @@ object CarbonCalculator {
     }
 
     /**
-     * Derives the emission factor for a transport action from its [CarbonInput.name].
+     * Derives the (chosen mode factor, reference baseline factor) pair for a
+     * transport action from its [CarbonInput.name].
      *
-     * The name is matched case-insensitively against known transport mode keywords.
-     * Unrecognised names fall back to the car factor (delta = 0.0).
+     * **Normal case** — the chosen mode is compared against the car baseline:
+     * ```
+     * delta = (modeFactor - CAR_FACTOR) * distanceKm
+     * ```
      *
-     * Supported keywords: `cycling`, `bike`, `bicycle`, `walking`, `walk`,
+     * **"Avoided X" case** — when the name starts with "avoided", the user did
+     * NOT take mode X (factor = 0.0) and the reference is X's own factor:
+     * ```
+     * delta = (0.0 - modeFactor) * distanceKm
+     * ```
+     * Example: "avoided flight 5000 km" → `(0.0 - 0.255) * 5000 = -1275 kgCO2e`.
+     *
+     * Supported mode keywords: `cycling`, `bike`, `bicycle`, `walking`, `walk`,
      * `bus`, `train`, `rail`, `flight`, `plane`, `airplane`.
+     * Unrecognised names fall back to the car factor (delta = 0.0).
      */
-    private fun emissionFactorForTransport(name: String): Double {
+    private fun modeFactorForName(name: String): Double {
         val lower = name.lowercase()
         return when {
             lower.contains("cycling") || lower.contains("bike") ||
             lower.contains("bicycle") || lower.contains("walking") ||
-            lower.contains("walk")    -> EmissionFactors.CYCLING
+            lower.contains("walk")     -> EmissionFactors.CYCLING
 
-            lower.contains("bus")     -> EmissionFactors.BUS
+            lower.contains("bus")      -> EmissionFactors.BUS
 
             lower.contains("train") || lower.contains("rail") -> EmissionFactors.TRAIN
 
             lower.contains("flight") || lower.contains("plane") ||
             lower.contains("airplane") -> EmissionFactors.FLIGHT
 
-            else                       -> EmissionFactors.CAR
+            else                        -> EmissionFactors.CAR
         }
     }
 
     private fun calculateTransport(input: CarbonInput): CarbonDelta {
         val distance = input.distanceKm ?: 0.0
-        val factor = emissionFactorForTransport(input.name)
-        val deltaKg = (factor - EmissionFactors.CAR) * distance
+        val lower = input.name.lowercase()
+
+        val deltaKg = if (lower.startsWith("avoided")) {
+            // "Avoided X": the user skipped mode X (factor 0.0) vs X's emission factor
+            val avoidedFactor = modeFactorForName(lower.removePrefix("avoided").trim())
+            (0.0 - avoidedFactor) * distance
+        } else {
+            // Normal: chosen mode vs car baseline
+            val chosenFactor = modeFactorForName(input.name)
+            (chosenFactor - EmissionFactors.CAR) * distance
+        }
+
         return CarbonDelta(deltaKg)
     }
 }
