@@ -61,7 +61,22 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 ```bash
 git clone <dojo-repo>
 cd ecotrack
-# Repo has only .git and README.md — everything else participants create
+# Repo contains .git, README.md, and pre-scaffolded empty directories.
+# Every file participants create goes into an existing folder — no mkdir needed.
+```
+
+### Repo structure at start
+
+```
+.github/
+  instructions/    ← Phase 1B target
+  prompts/         ← Phases 3–4 target
+ecotrack-android/app/src/
+  main/kotlin/com/ecotrack/domain/    ← Phase 4 implementation target
+  test/kotlin/com/ecotrack/domain/    ← Phase 4 test target
+ecotrack-ios/
+  Sources/Domain/                     ← Phase 4 implementation target (iOS)
+  Tests/Domain/                       ← Phase 4 test target (iOS)
 ```
 
 ---
@@ -105,6 +120,18 @@ domain layer. It should:
 - Enforce: pure functions for calculations, sealed types for action categories, no side effects in domain
 - Require KDoc/DocC comments on every public type
 ```
+
+**Syntaxe exacte du frontmatter — à copier en tête du fichier :**
+
+```markdown
+---
+applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/*Domain*.swift"
+---
+# Domain Rules
+(votre contenu ici)
+```
+
+> **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot ignore intégralement le fichier. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
 
 **What participants observe:** The `applyTo` frontmatter field scopes these rules. Copilot will only inject them when editing domain files. This is Explicit Hierarchy in action — global rules always apply; scoped rules apply contextually.
 
@@ -171,8 +198,11 @@ It should:
 
 ### Step 3B — Run the BDD prompt (live generation)
 
-**Participants open** `.github/prompts/habit-bdd.prompt.md` in Copilot Chat and run it with:
-- `{{HABIT_CATEGORY}}` = `transport` (cycling, walking, public transit)
+**Participants open** `.github/prompts/habit-bdd.prompt.md` in Copilot Chat.
+
+> **Important :** Copilot ne substitue pas les `{{variables}}` automatiquement. Avant d'exécuter, remplace `{{HABIT_CATEGORY}}` par la valeur souhaitée directement dans le fichier (ou dans la zone de chat).
+
+Run with `{{HABIT_CATEGORY}}` replaced by `transport` (cycling, walking, public transit).
 
 **Expected output structure:**
 ```gherkin
@@ -234,7 +264,14 @@ Create .github/prompts/carbon-calculator.prompt.md that:
 - Include a test for the zero-delta edge case and the crash-report security scenario
 ```
 
-**Participants run this prompt** with `{{PLATFORM}}` = their own platform (Android or iOS).
+**Avant d'exécuter :** dans le fichier `.prompt.md`, remplace manuellement `{{PLATFORM}}` par la valeur correspondante — Copilot ne substitue pas les variables automatiquement.
+
+| Plateforme | Valeur à écrire |
+|---|---|
+| Android | `android (Kotlin/JUnit5)` |
+| iOS | `ios (Swift/XCTest)` |
+
+**Participants run this prompt** with `{{PLATFORM}}` set to their own platform.
 
 **Android output example:**
 ```kotlin
@@ -264,14 +301,101 @@ class CarbonCalculatorTest {
 
 ### Step 4B — Drive implementation from red tests
 
-**Participants open** their failing test file and trigger Copilot inline:
+**Participants open** their failing test file, select all its content, then paste the prompt below **verbatim** in Copilot Chat.
 
+**Prompt Android (copier-coller tel quel) :**
 ```
-// In the test file, select all failing tests and write in Copilot Chat:
-The tests above are failing. Implement CarbonCalculator as a pure function
-with no side effects. Use the domain model from ecotrack-domain.spec.md.
-Do not add any persistence, networking, or UI logic.
-Carbon factors (kgCO2e per km): cycling=0.0, car=0.15, bus=0.04, train=0.03.
+My test file CarbonCalculatorTest.kt is failing because the production types do not exist yet.
+Create CarbonCalculator.kt in the same package (com.ecotrack.domain) with exactly these types:
+
+sealed class ActionCategory {
+    object Transport : ActionCategory()
+    object Food : ActionCategory()
+    object Energy : ActionCategory()
+    object Consumption : ActionCategory()
+    object Waste : ActionCategory()
+}
+
+@JvmInline value class CarbonDelta(val kgCO2e: Double) {
+    init { require(kgCO2e.isFinite()) }
+}
+
+@JvmInline value class FootprintBaseline(val tCO2ePerYear: Double) {
+    init { require(tCO2ePerYear.isFinite() && tCO2ePerYear > 0.0) }
+}
+
+data class CarbonInput(
+    val category: ActionCategory,
+    val name: String,
+    val distanceKm: Double? = null
+)
+
+object CarbonCalculator {
+    fun calculate(input: CarbonInput): CarbonDelta { TODO() }
+}
+
+object FootprintCalculator {
+    fun percentageOf(delta: CarbonDelta, baseline: FootprintBaseline): Double { TODO() }
+}
+
+ADEME 2024 emission factors (kgCO2e/km):
+- cycling / walking = 0.0
+- car = 0.15  ← this is the reference baseline for Transport actions
+- bus = 0.04
+- train / rail = 0.03
+- flight / plane = 0.255
+
+Formula for Transport actions:
+  delta = (chosenFactor - CAR_FACTOR) * distanceKm
+  Special case — name starts with "avoided":
+    delta = (0.0 - avoidedModeFactor) * distanceKm
+    Example: "Avoided flight" 5000 km → (0.0 - 0.255) * 5000 = -1275 kgCO2e
+
+Rules: pure functions only, no I/O, no network calls, no Android imports.
+```
+
+**Prompt iOS (copier-coller tel quel) :**
+```
+My test file CarbonCalculatorTests.swift is failing because the production types do not exist yet.
+Create CarbonCalculator.swift in the Domain group with exactly these types:
+
+enum ActionCategory { case transport, food, energy, consumption, waste }
+
+struct CarbonDelta {
+    let kgCO2e: Double
+    init(_ value: Double) { precondition(value.isFinite); self.kgCO2e = value }
+}
+
+struct FootprintBaseline {
+    let tCO2ePerYear: Double
+    init(_ value: Double) { precondition(value.isFinite && value > 0); self.tCO2ePerYear = value }
+}
+
+struct CarbonInput {
+    let category: ActionCategory
+    let name: String
+    var distanceKm: Double? = nil
+}
+
+enum CarbonCalculator {
+    static func calculate(_ input: CarbonInput) -> CarbonDelta { fatalError("TODO") }
+}
+
+enum FootprintCalculator {
+    static func percentageOf(_ delta: CarbonDelta, baseline: FootprintBaseline) -> Double { fatalError("TODO") }
+}
+
+ADEME 2024 emission factors (kgCO2e/km):
+- cycling / walking = 0.0
+- car = 0.15  ← reference baseline
+- bus = 0.04
+- train = 0.03
+- flight = 0.255
+
+Formula: delta = (chosenFactor - carFactor) * distanceKm
+Special "avoided X": delta = (0.0 - xFactor) * distanceKm
+
+Rules: pure functions only, no UIKit, no network calls.
 ```
 
 **The orchestration insight:** Copilot's implementation is constrained by three layers it can see simultaneously:

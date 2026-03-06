@@ -12,9 +12,39 @@ Apply domain rules from [domain.instructions.md](../instructions/domain.instruct
 Apply security rules from [security.instructions.md](../instructions/security.instructions.md).
 
 **Input:** The BDD scenarios produced by [habit-bdd.prompt.md](habit-bdd.prompt.md)
-for category `{{HABIT_CATEGORY}}`.
+for category `{{HABIT_CATEGORY}}` ← remplace manuellement cette valeur (ex: `transport`).
 
-**Platform:** `{{PLATFORM}}` — either `android` (Kotlin/JUnit5) or `ios` (Swift/XCTest)
+**Platform:** `{{PLATFORM}}` ← remplace par `android (Kotlin/JUnit5)` ou `ios (Swift/XCTest)`.
+
+> Copilot ne substitue pas les `{{variables}}` automatiquement. Modifie le fichier avant de l'exécuter.
+
+## Emission Factors & Formulas Reference (ADEME 2024)
+
+| Mode | Factor (kgCO₂e/km) |
+|---|---|
+| cycling / walking | 0.0 |
+| **car (reference baseline)** | **0.15** |
+| bus | 0.04 |
+| train / rail | 0.03 |
+| flight / plane | 0.255 |
+
+**Transport delta formula:**
+```
+Normal action:  delta = (chosenFactor - CAR_FACTOR) * distanceKm
+"Avoided X":    delta = (0.0 - X_FACTOR) * distanceKm
+```
+
+**Expected values for acceptance tests:**
+
+| Scenario | Calculation | Result |
+|---|---|---|
+| Cycling 12 km | (0.0 − 0.15) × 12 | **−1.8 kgCO₂e** |
+| Bus 20 km | (0.04 − 0.15) × 20 | **−2.2 kgCO₂e** |
+| Train 100 km | (0.03 − 0.15) × 100 | **−12.0 kgCO₂e** |
+| Avoided flight 5000 km | (0.0 − 0.255) × 5000 | **−1275.0 kgCO₂e** |
+| Reusable cup (Consumption) | no distance → 0.0 | **0.0 kgCO₂e** |
+
+> **Piège "avoided flight" :** la baseline n'est PAS car (0.15) mais le facteur du mode évité (0.255). C'est pourquoi le résultat est −1275 et non −750.
 
 ## Phase 1 — Generate Failing Tests (RED)
 
