@@ -140,19 +140,23 @@ ecotrack-ios/
 > Gardez ce schéma en tête tout au long du dojo — chaque phase produit un artefact qui est l'input de la phase suivante.
 
 ```
-[copilot-instructions.md]        ← E: Contexte global (toujours actif)
+[copilot-instructions.md]              ← E: Contexte global (toujours actif)
       │
-[domain.instructions.md]         ← E: Contexte domaine (actif sur les fichiers domain)
+[domain.instructions.md]              ← E: Contexte domaine (actif sur les fichiers domain)
       │
-[ecotrack-domain.spec.md]        ← R: Périmètre borné de la session
+[ecotrack-domain.spec.md]             ← R: Périmètre borné de la session
       │
-[habit-bdd.prompt.md]            ← P: Contexte BDD juste-à-temps
+[habit-bdd.prompt.md]                 ← P: Contexte BDD juste-à-temps
       │
-[carbon-calculator.prompt.md]    ← O: Pipeline étape 1 → tests rouges
+[LogHabitCompletionUseCaseTest.kt]    ← O: Tests existants (rouge pré-positionné)
+[CompleteHabitUseCaseTests.swift]     ← O: Tests existants (rouge pré-positionné)
+      │ #domain.instructions.md
+      │ #swift-ios.instructions.md / #LogHabitCompletionUseCaseTest.kt
+      ↓
+[CompleteHabitUseCase.swift]          ← O: Implémentation guidée par composition
+[LogHabitCompletionUseCase.kt]        ← O: Implémentation guidée par composition
       │
-[CarbonCalculator.kt / .swift]   ← O: Pipeline étape 2 → implémentation verte
-      │
-[security / a11y / eco .md]      ← S: Guardrails permanents
+[security / a11y / eco .md]           ← S: Guardrails permanents
 ```
 
 ---
@@ -347,268 +351,132 @@ Feature: Transport Habit Tracking
 ## Phase 4 — O: Orchestrated Composition (33:00 – 45:00)
 ### PROSE Constraint: Simple things compose; complex things collapse
 
-**Learning outcome:** PROSE orchestrates AI work as a pipeline. Each prompt produces an artifact. The next prompt consumes that artifact. This is how you build complex features without losing coherence — small verified steps compose into reliable wholes.
+**Learning outcome:** Plusieurs artefacts PROSE simples — une spec de domaine, des instructions, des tests existants — chacun insuffisant seul, composent en un prompt qui guide Copilot vers une implémentation cohérente et contrainte. La composition *est* le message.
 
-### The TDD composition pipeline
+### Principe de l'exercice
 
-Participants will execute this three-step pipeline, where each output feeds the next prompt:
+Le repo contient déjà deux cibles TDD prêtes-à-l'emploi, avec un stub qui échoue proprement :
 
-```
-[spec.md] ──▶ [BDD scenarios] ──▶ [Failing tests] ──▶ [Implementation]
-              (Phase 3 output)    (Step 4A)              (Step 4B)
-```
+| Plateforme | Fichier de tests | Cible à implémenter | Stub de départ |
+|---|---|---|---|
+| Android | `LogHabitCompletionUseCaseTest.kt` | méthode `execute()` dans le stub en bas du fichier | `TODO("Implement use case")` |
+| iOS | `CompleteHabitUseCaseTests.swift` | `CompleteHabitUseCase.execute(habitID:on:note:)` | `throw HabitError.habitNotFound(habitID)` |
 
-### Démo facilitateur — Le cycle Rouge → Vert (2 min, avant Step 4A)
-
-> Cette démo est **obligatoire**. Sans elle, "écrire un test qui échoue intentionnellement" reste contre-intuitif et paraît être une erreur. La voir en action lève le blocage mental.
-
-**Script (30 secondes de code, 90 secondes d'explication) :**
-
-**Android :** Ouvrir `CarbonCalculatorTest.kt`, clic droit sur la classe → *Run CarbonCalculatorTest*. Les tests sont rouges. Montrer la sortie rouge. Puis ouvrir `CarbonCalculator.kt` — les `TODO()` sont là. Remplacer le premier `TODO()` par une implémentation minimale. Relancer. Montrer le premier test passer en vert.
-
-**iOS :** Dans le terminal VS Code : `cd ecotrack-ios && swift test`. Montrer les `✗` rouges. Ouvrir `CarbonCalculator.swift`, implémenter la première fonction. Relancer `swift test`. Montrer le premier `✓` vert.
-
-**Message pédagogique :** *"Rouge = le test sait ce qu'il veut. Vert = le code l'a satisfait. On ne code que pour passer du rouge au vert. Rien de plus."*
+Le participant n'a pas à créer les tests. Il assemble les artefacts PROSE produits dans les phases précédentes et demande à Copilot de compléter l'implémentation.
 
 ---
 
-### Setup technique avant de commencer — Android (JUnit5)
+### Démo facilitateur — Le rouge est déjà là (2 min)
 
-> **Le projet fourni est pré-configuré.** Ce bloc est pour les participants qui travaillent sur leur propre projet Android et veulent reproduire le setup après le dojo.
+> Cette démo remplace le cycle "créer les tests depuis zéro". Le rouge est pré-positionné — montrer que le seul travail restant est d'assembler le bon contexte PROSE.
 
-Les dépendances JUnit5 + AssertJ à ajouter dans `app/build.gradle` :
+**Android :**
+1. Ouvrir `ecotrack-android/app/src/test/kotlin/com/ecotrack/domain/usecase/LogHabitCompletionUseCaseTest.kt`
+2. Scroller en bas → montrer la ligne : `suspend fun execute(params: Params): Result<CompletionResult> = TODO("Implement use case")`
+3. Dire : *"5 tests définissent exactement ce que cette méthode doit faire. Elle ne fait rien encore. Notre travail : assembler les artefacts PROSE pour que Copilot l'implémente correctement."*
 
-```kotlin
-// app/build.gradle.kts
-android {
-    testOptions {
-        unitTests.all { it.useJUnitPlatform() }
-    }
-}
+**iOS :**
+1. Ouvrir `ecotrack-ios/Sources/EcoTrack/Domain/UseCases/CompleteHabitUseCase.swift`
+2. Montrer la ligne : `throw HabitError.habitNotFound(habitID) // Remove this line when implementing`
+3. (Optionnel, si l'extension `sswg.swift-lang` est installée) : ouvrir le panneau Testing — les 8 tests sont affichés en rouge sans commande terminal
+4. Dire : *"Le rouge est propre — pas d'erreur de compilation, juste un throw intentionnel. Copilot va le remplacer."*
 
-dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
-    testImplementation("org.assertj:assertj-core:3.24.2")
-}
-```
-
-Voir le détail complet dans [`ecotrack-android/docs/junit5-setup.md`](../ecotrack-android/docs/junit5-setup.md).
-
-**Lancer les tests Android :**
-- Android Studio : clic droit sur la classe de test → *Run*
-- Ligne de commande : `./gradlew test`
-- Résultats HTML : `app/build/reports/tests/test/index.html`
+**Message pédagogique :** *"Les tests savent ce qu'ils veulent. L'implémentation ne sait pas encore quoi faire. Votre job : assembler les artefacts PROSE pour que Copilot comble l'écart."*
 
 ---
 
-### Setup technique avant de commencer — iOS (VS Code + Swift)
+### Step 4A — Assembler le contexte PROSE dans Copilot Chat (3 min)
 
-> Le projet iOS utilise Swift Package Manager — aucun `.xcodeproj` nécessaire.
+> **L'acte pédagogique central de Phase 4 : charger plusieurs artefacts simultanément via `#`.** Les participants voient concrètement la "composition" avant que Copilot réponde.
 
-**Prérequis :** Swift installé (`swift --version` dans le terminal).
-
-**Lancer les tests iOS depuis VS Code :**
-```bash
-cd ecotrack-ios
-swift test                                    # tous les tests
-swift test --filter CarbonCalculatorTests     # un fichier de test
+**Android — charger ces 2 artefacts dans Copilot Chat (`Ctrl+Alt+I`) :**
+```
+#domain.instructions.md  #LogHabitCompletionUseCaseTest.kt
 ```
 
-**Lire la sortie :**
+Puis envoyer ce prompt (aucune variable à substituer) :
 ```
-✓ test_cyclingCommute_producesNegativeDelta   ← vert (passé)
-✗ test_avoidedFlight_returns1275kgCO2e       ← rouge (échec)
+Implement the execute(params: Params) method in the LogHabitCompletionUseCase stub
+(bottom of the test file) to make all 5 tests pass.
+
+Rules:
+- Return Result.success(CompletionResult(carbonSavedGrams)) when the habit is found
+- Return Result.failure(HabitNotFoundException(params.habitId)) when findById() returns null
+- Idempotent: if already completed today, save with exactly one completion for today
+- Store params.note on the completion entry if not null
+- No Android imports. No logging. Pure suspend function.
 ```
 
-**Alternative graphique :** Installer l'extension VS Code **"Swift"** (ID : `sswg.swift-lang`) → les tests apparaissent dans le panneau Testing avec des boutons ▶.
+**iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Shift+I`) :**
+```
+#domain.instructions.md  #swift-ios.instructions.md  #CompleteHabitUseCaseTests.swift
+```
 
-Voir le détail complet dans [`ecotrack-ios/docs/run-tests-vscode.md`](../ecotrack-ios/docs/run-tests-vscode.md).
+Puis envoyer ce prompt (aucune variable à substituer) :
+```
+Implement CompleteHabitUseCase.execute(habitID:on:note:) in CompleteHabitUseCase.swift
+to make all 8 failing tests pass.
+
+TDD rules:
+1. Implement ONLY what the listed tests verify — no extra logic.
+2. Steps: fetch → habit.completing(on:note:) → save → log → return.
+3. Propagate: HabitError.habitNotFound, .alreadyCompletedToday, .futureCompletion.
+
+Constraints:
+- Domain layer — no UIKit, no SwiftData, no singletons.
+- OSLog: habitID → .public, dates and notes → .private.
+- No force unwrap (!). No print(). Method is async throws.
+```
+
+> **Point de contrôle facilitateur — 30 secondes :**
+> Demander à voix haute : *"Combien de fichiers avez-vous référencés avec `#` ?"*
+> Réponse attendue : 2 pour Android, 3 pour iOS. Si un binôme n'en a mis qu'un — c'est le moment pédagogique : *"Qu'est-ce que Copilot ne sait pas encore ?"*
 
 ---
 
-### Step 4A — Generate failing tests from BDD scenarios
+### Step 4B — Lire et valider l'implémentation générée (4 min)
 
-**Participants create:** `.github/prompts/carbon-calculator.prompt.md`
+Copilot génère le corps de la méthode. Le participant accepte et vérifie visuellement :
 
-**Copilot prompt to write:**
-```
-Create .github/prompts/carbon-calculator.prompt.md that:
-- Accepts the BDD scenarios from habit-bdd.prompt.md as input context
-- Generates platform-specific unit tests (Kotlin/JUnit5 OR Swift/XCTest)
-  based on {{PLATFORM}} variable
-- Tests must be FAILING first (TDD red phase) — no implementation yet
-- Test class must be named CarbonCalculatorTest / CarbonCalculatorTests
-- Each test maps to exactly one BDD scenario (reference by scenario title in @DisplayName)
-- Include a test for the zero-delta edge case and the crash-report security scenario
-```
+**Android — dans `LogHabitCompletionUseCase.execute()` :**
+- [ ] `habitRepository.findById(params.habitId)` est appelé
+- [ ] `null` → `Result.failure(HabitNotFoundException(...))`
+- [ ] "already completed today" → une seule complétion pour aujourd'hui (idempotent)
+- [ ] `params.note` transmis à l'entrée de complétion
 
-**Avant d'exécuter :** dans le fichier `.prompt.md`, remplace manuellement `{{PLATFORM}}` par la valeur correspondante — Copilot ne substitue pas les variables automatiquement.
+**iOS — dans `CompleteHabitUseCase.execute(habitID:on:note:)` :**
+- [ ] `habitRepository.fetchHabit(by:)` est appelé (pas `fetchHabits`)
+- [ ] `habit.completing(on:note:)` est appelé sur le résultat
+- [ ] `habitRepository.save(_:)` persiste l'état mis à jour
+- [ ] Log OSLog : `habitID` → `.public`, `date` → `.private`
+- [ ] Aucun `print()`, aucun `import UIKit`, aucun force-unwrap `!`
 
-| Plateforme | Valeur à écrire |
+Si `./gradlew test` ou l'extension Swift sont disponibles : lancer les tests et observer le vert.
+Sinon : comparer côte à côte le test et l'implémentation — pointer chaque assertion et la ligne qui la satisfait.
+
+---
+
+### Le moment de composition — 2 min (animateur à voix haute)
+
+Pointer chaque élément du code généré et demander : *"D'où vient ceci ?"*
+
+| Ce que Copilot a généré | Artefact source |
 |---|---|
-| Android | `android (Kotlin/JUnit5)` |
-| iOS | `ios (Swift/XCTest)` |
+| `HabitRepository.findById()` / `fetchHabit(by:)` | Protocole défini dans le domaine — connu de Copilot via `domain.instructions.md` |
+| `HabitError.habitNotFound` / `HabitNotFoundException` | Type d'erreur lu dans le fichier de tests via `#` |
+| `habit.completing(on:note:)` (iOS) | Méthode de l'entité `Habit` — présente dans les tests via `@testable import` |
+| Aucun `print()`, OSLog avec `.public`/`.private` | Règle dans `swift-ios.instructions.md` actif automatiquement |
+| Méthode suspendue sans I/O ni imports framework | Règle "no side effects in domain" dans `domain.instructions.md` |
 
-**Participants run this prompt** with `{{PLATFORM}}` set to their own platform.
-
-**Android output example:**
-```kotlin
-// CarbonCalculatorTest.kt — RED PHASE (no implementation exists yet)
-@DisplayName("Transport Habit Tracking")
-class CarbonCalculatorTest {
-
-    @Test
-    @DisplayName("User logs a cycling commute")
-    fun `cycling commute produces correct negative carbon delta`() {
-        val action = EcoAction(category = ActionCategory.Transport, name = "Cycling", distanceKm = 12.0)
-        val delta = CarbonCalculator.calculate(action)
-        assertThat(delta.kgCO2e).isCloseTo(-1.8, within(0.01))
-    }
-
-    @Test
-    @DisplayName("Zero-delta action does not cause division by zero")
-    fun `reusable cup action has zero delta and safe percentage calculation`() {
-        val action = EcoAction(category = ActionCategory.Consumption, name = "Reusable Cup")
-        val delta = CarbonCalculator.calculate(action)
-        assertThat(delta.kgCO2e).isZero()
-        assertThatCode { FootprintCalculator.percentageOf(delta, baseline = FootprintBaseline(8.5)) }
-            .doesNotThrowAnyException()
-    }
-}
-```
-
-> **Note TDD — tests rouges vs erreurs de compilation :**
-> - **Rouge attendu :** les tests compilent mais les assertions échouent — les types `EcoAction`, `CarbonCalculator` etc. n'ont pas encore d'implémentation (`TODO()`).
-> - **Erreur de compilation :** les types n'existent pas encore du tout. C'est l'état **avant** Step 4B. Ce n'est pas du "rouge TDD" — c'est un fichier cassé. Le rouge commence seulement **après** que Step 4B a créé les stubs.
-> - **iOS spécifique :** `swift test` avec des types manquants renvoie des erreurs de compilation, pas des `✗`. Le premier vrai rouge apparaît après création de `CarbonCalculator.swift` avec les stubs `throw CarbonCalculatorError.notImplemented`.
-
-### Step 4B — Drive implementation from red tests
-
-**Participants open** their failing test file, select all its content, then paste the prompt below **verbatim** in Copilot Chat.
-
-**Prompt Android (copier-coller tel quel) :**
-```
-My test file CarbonCalculatorTest.kt is failing because the production types do not exist yet.
-Create CarbonCalculator.kt in the same package (com.ecotrack.domain) with exactly these types:
-
-sealed class ActionCategory {
-    object Transport : ActionCategory()
-    object Food : ActionCategory()
-    object Energy : ActionCategory()
-    object Consumption : ActionCategory()
-    object Waste : ActionCategory()
-}
-
-@JvmInline value class CarbonDelta(val kgCO2e: Double) {
-    init { require(kgCO2e.isFinite()) }
-}
-
-@JvmInline value class FootprintBaseline(val tCO2ePerYear: Double) {
-    init { require(tCO2ePerYear.isFinite() && tCO2ePerYear > 0.0) }
-}
-
-data class EcoAction(
-    val category: ActionCategory,
-    val name: String,
-    val distanceKm: Double? = null
-)
-
-object CarbonCalculator {
-    fun calculate(action: EcoAction): CarbonDelta { TODO() }
-}
-
-object FootprintCalculator {
-    fun percentageOf(delta: CarbonDelta, baseline: FootprintBaseline): Double { TODO() }
-}
-
-ADEME 2024 emission factors (kgCO2e/km):
-- cycling / walking = 0.0
-- car = 0.15  ← this is the reference baseline for Transport actions
-- bus = 0.04
-- train / rail = 0.03
-- flight / plane = 0.255
-
-Formula for Transport actions:
-  delta = (chosenFactor - CAR_FACTOR) * distanceKm
-  Special case — name starts with "avoided":
-    delta = (0.0 - avoidedModeFactor) * distanceKm
-    Example: "Avoided flight" 5000 km → (0.0 - 0.255) * 5000 = -1275 kgCO2e
-
-Rules: pure functions only, no I/O, no network calls, no Android imports.
-```
-
-**Prompt iOS (copier-coller tel quel) :**
-```
-My test file CarbonCalculatorTests.swift is failing because the production types do not exist yet.
-Create CarbonCalculator.swift in Sources/Domain/ with exactly these types:
-
-enum ActionCategory { case transport, food, energy, consumption, waste }
-
-enum CarbonDeltaError: Error { case notFinite }
-enum FootprintBaselineError: Error { case notPositive }
-
-struct CarbonDelta {
-    let kgCO2e: Double
-    init(_ value: Double) throws {
-        guard value.isFinite else { throw CarbonDeltaError.notFinite }
-        self.kgCO2e = value
-    }
-}
-
-struct FootprintBaseline {
-    let tCO2ePerYear: Double
-    init(_ value: Double) throws {
-        guard value.isFinite && value > 0 else { throw FootprintBaselineError.notPositive }
-        self.tCO2ePerYear = value
-    }
-}
-
-struct CarbonInput {
-    let category: ActionCategory
-    let name: String
-    var distanceKm: Double? = nil
-}
-
-enum CarbonCalculatorError: Error { case notImplemented, invalidInput }
-
-enum CarbonCalculator {
-    static func calculate(_ input: CarbonInput) throws -> CarbonDelta {
-        throw CarbonCalculatorError.notImplemented  // RED phase stub — tests fail cleanly
-    }
-}
-
-enum FootprintCalculator {
-    static func percentageOf(_ delta: CarbonDelta, baseline: FootprintBaseline) -> Double {
-        preconditionFailure("Not implemented — RED phase")
-    }
-}
-
-ADEME 2024 emission factors (kgCO2e/km):
-- cycling / walking = 0.0
-- car = 0.15  ← reference baseline
-- bus = 0.04
-- train = 0.03
-- flight = 0.255
-
-Formula: delta = (chosenFactor - carFactor) * distanceKm
-Special "avoided X" (name starts with "avoided"): delta = (0.0 - xFactor) * distanceKm
-Example: "Avoided flight" 5000 km → (0.0 - 0.255) * 5000 = -1275 kgCO2e
-
-Rules: pure functions only, no UIKit, no network calls.
-Use XCTAssertThrowsError to test invalid inputs in CarbonCalculatorTests.swift.
-```
-
-**The orchestration insight:** Copilot's implementation is constrained by three layers it can see simultaneously:
-1. The failing tests (what it must satisfy)
-2. The domain spec (what the types must look like)
-3. The domain instructions (what style rules apply)
-
-**This is composition.** Three simple artifacts, each correct in isolation, compose into a trustworthy implementation prompt.
+**La question à poser à voix haute :**
+> *"Qui a écrit `HabitError.habitNotFound` dans le prompt ?"* → Personne. Copilot l'a inféré des tests référencés.
+> *"Qui a interdit le `print()` ?"* → `swift-ios.instructions.md`, actif automatiquement car le fichier est dans `Sources/`.
+>
+> **C'est ça, la composition PROSE.** Chaque artefact était insuffisant seul. Ensemble, ils ont guidé Copilot vers une implémentation que vous n'auriez pas obtenue avec un prompt direct — parce que le contexte était structuré, borné, et cohérent.
 
 ### Composition failure demo (facilitator optional)
 
-Ask one pair to skip the spec and prompt files and just say: *"Build me a carbon calculator for a mobile eco app."* Show the result. It works, technically. But: wrong naming, no domain language, no test coverage, no security considerations. The complexity collapsed instead of composing.
+Demander à un binôme d'envoyer sans aucun `#` : *"Implement a use case that logs habit completion for a mobile eco app."* Montrer le résultat — il compile probablement, mais : noms inventés, pas de protocole `HabitRepository`, `print()` pour les logs, pas d'erreur typée. La complexité s'est effondrée au lieu de se composer.
 
 ---
 
