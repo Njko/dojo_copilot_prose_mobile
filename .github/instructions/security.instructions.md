@@ -1,10 +1,10 @@
 ---
-applyTo: "**/*.kt, **/*.swift, **/*.ts, **/*.tsx"
+applyTo: "**/*.kt, **/*.swift"
 ---
 
 # EcoTrack Security & Privacy Instructions
 
-These guardrails apply to all Kotlin, Swift, and TypeScript files.
+These guardrails apply to all Kotlin and Swift files.
 Flag violations inline with `// SECURITY: <reason>` before the offending line.
 
 ## PII — Never Log or Expose
@@ -55,6 +55,7 @@ Crashlytics.crashlytics().setCustomValue(habits.count, forKey: "habit_count") //
 - All HTTP clients must use certificate pinning:
   - Android (OkHttp): reference `CertificatePinner` — flag any `OkHttpClient.Builder()` without it
   - iOS (URLSession): reference `URLSessionDelegate` with pinning — flag any `URLSession.shared` used for authenticated calls
+  - > ⚠️ **Note opérationnelle :** le certificate pinning peut provoquer un outage si le certificat expire sans rotation préparée. Ne l'activer qu'avec une politique de rotation documentée (runbook).
 - All API calls must be HTTPS — flag any `http://` URL literal
 
 ## Offline Fallback
