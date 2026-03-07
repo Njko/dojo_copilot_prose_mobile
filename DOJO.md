@@ -30,6 +30,30 @@ Participants will build the **domain core** of EcoTrack — not a full app, but 
 
 ---
 
+## Glossaire — Termes-clés du Dojo
+
+> À distribuer aux participants **avant de démarrer**, ou à projeter pendant la Phase 0.
+> Ces termes apparaissent sans explication dans les exercices — les connaître évite les blocages inutiles.
+
+| Terme | Définition courte |
+|-------|------------------|
+| **PII** | *Personally Identifiable Information* — données permettant d'identifier une personne : nom, email, localisation, ID utilisateur. Ne jamais les logger. |
+| **WCAG 2.2 AA** | *Web Content Accessibility Guidelines* — norme internationale d'accessibilité. Niveau AA = standard professionnel minimum. S'applique aux apps mobiles natives. |
+| **TDD** | *Test-Driven Development* — on écrit le test **avant** le code de production. Cycle : 🔴 Rouge (test échoue) → 🟢 Vert (code minimal) → ♻️ Refactor. |
+| **BDD** | *Behavior-Driven Development* — on décrit le comportement attendu en langage naturel (Given/When/Then) avant de coder. Complémentaire au TDD. |
+| **Gherkin** | Syntaxe formelle pour écrire des scénarios BDD : `Given` (contexte) / `When` (action) / `Then` (résultat attendu). Utilisée par Cucumber. |
+| **DDD** | *Domain-Driven Design* — approche qui centre le code sur le vocabulaire et les règles métier, pas sur les frameworks. |
+| **Ubiquitous Language** | En DDD : tout le monde (devs et non-devs) utilise les **mêmes mots** pour les mêmes concepts. Évite les traductions implicites. |
+| **Invariant** | Règle métier qui doit **toujours** être vraie (ex : un `CarbonDelta` ne peut pas être `NaN` ou `Infinity`). |
+| **Value Object** | Objet défini par sa valeur, sans identité propre (ex : `CarbonDelta(1.8)` ≠ entité persistée). |
+| **Entity** | Objet avec une identité unique persistante (ex : un `Habit` avec un ID en base). |
+| **Clean Architecture** | Séparation du code en couches indépendantes : **Domain** (logique métier pure, aucune dépendance externe) / **Data** (stockage, réseau) / **Presentation** (UI). |
+| **frontmatter** | Bloc de métadonnées YAML délimité par `---` en tête d'un fichier Markdown. Copilot lit le champ `applyTo` pour savoir à quels fichiers appliquer les instructions. |
+| **`Sendable`** (Swift) | Protocole Swift 6 garantissant qu'un type est thread-safe. Les `struct` avec uniquement des `let` le sont implicitement. |
+| **`Result<T>`** (Kotlin/Swift) | Type qui encapsule soit une valeur de succès, soit une erreur typée — sans `try/catch`. Préféré aux exceptions pour les erreurs métier attendues. |
+
+---
+
 ## Timing Breakdown
 
 ```
@@ -42,6 +66,7 @@ Participants will build the **domain core** of EcoTrack — not a full app, but 
 53:00 ─── Retrospective             (7 min)   ← "What would collapse without PROSE?"
 60:00 ─── End
 ```
+
 
 ---
 
@@ -161,6 +186,12 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/*Domain*.swift"
 
 **What participants observe:** The `applyTo` frontmatter field scopes these rules. Copilot will only inject them when editing domain files. This is Explicit Hierarchy in action — global rules always apply; scoped rules apply contextually.
 
+> **✓ Point de contrôle facilitateur — 30 secondes avant de passer à la Phase 2 :**
+> Demandez à chaque binôme de lire à voix haute leur ligne `applyTo`.
+> Vérifiez que le pattern correspond à leurs dossiers réels (`src/domain/`, `Sources/Domain/`, etc.).
+> Une `applyTo` incorrecte rend le fichier **silencieusement inutile** — aucun message d'erreur n'est affiché.
+> Si le pattern ne correspond pas, corrigez-le maintenant : une erreur ici contaminera toutes les phases suivantes.
+
 ---
 
 ## Phase 2 — R: Reduced Scope (15:00 – 23:00)
@@ -198,6 +229,11 @@ Generate ecotrack-domain.spec.md with these sections:
 
 **Facilitator challenge:** Ask one pair to write an intentionally vague prompt ("build me an eco app") and share the result. Compare with the spec-grounded result. The difference is visceral.
 
+> **✓ Point de contrôle facilitateur — 30 secondes avant de passer à la Phase 3 :**
+> Demandez à chaque binôme de lire à voix haute leur section **"Out of Scope"**.
+> Si "UI", "réseau", "stockage" et "notifications" n'y figurent pas explicitement, la spec déborde — demandez de les ajouter avant de continuer.
+> Cette vérification évite que Copilot génère du code touchant des couches hors périmètre dans les phases suivantes.
+
 ---
 
 ## Phase 3 — P: Progressive Disclosure (23:00 – 33:00)
@@ -215,12 +251,16 @@ Create a .github/prompts/habit-bdd.prompt.md reusable prompt template.
 It should:
 - Reference [ecotrack-domain.spec.md](../../ecotrack-domain.spec.md) for domain context
 - Reference [domain.instructions.md](../instructions/domain.instructions.md) for language rules
+- Reference [security.instructions.md](../instructions/security.instructions.md) for PII rules
+- Reference [accessibility.instructions.md](../instructions/accessibility.instructions.md) for a11y rules
 - Ask Copilot to generate Gherkin BDD scenarios for the Habit entity
 - Require scenarios covering: happy path, edge cases (zero carbon delta),
   accessibility (screen reader announces habit completion),
   and a security scenario (habit data not leaked in crash reports)
 - Include a variable: {{HABIT_CATEGORY}} so the prompt is reusable per category
 ```
+
+> **Note — références anticipées :** Ce prompt file référence `security.instructions.md` et `accessibility.instructions.md` qui seront créés en **Phase 5**. Ajoutez ces références dès maintenant — Copilot les ignorera gracieusement si les fichiers sont absents, et les intégrera automatiquement dès qu'ils existeront. C'est la *Progressive Disclosure* en action : on structure le contexte en avance, on le remplit juste-à-temps.
 
 ### Step 3B — Run the BDD prompt (live generation)
 
@@ -529,6 +569,30 @@ Ask one pair to skip the spec and prompt files and just say: *"Build me a carbon
 ### PROSE Constraint: Autonomy within guardrails
 
 **Learning outcome:** PROSE does not just tell Copilot what to build — it tells Copilot what it must never do. Safety boundaries are explicit, machine-readable rules that prevent AI from generating code that violates privacy, security, accessibility, or eco-conception constraints.
+
+### Révélation guidée — Avant de créer les fichiers (2 min)
+
+> Avant de générer les règles, **identifiez vos propres mauvaises pratiques** dans l'assistance.
+> Posez ces questions à voix haute — les participants qui se reconnaissent comprendront les règles comme des *corrections*, pas comme des contraintes abstraites.
+
+**🔒 Sécurité :**
+- "Qui a déjà écrit un `Log.d(TAG, "User: $user")` ou un `print(user)` dans son code ?"
+- "Qui stocke un token d'authentification dans `SharedPreferences` (Android) ou `UserDefaults` (iOS) ?"
+- "Qui a mis une clé d'API directement dans le code source ?"
+
+**♿ Accessibilité :**
+- "Qui a déjà mis un bouton avec seulement une icône, sans `contentDescription` ni `accessibilityLabel` ?"
+- "Qui crée des boutons sans vérifier la taille de la zone cliquable ?"
+- "Qui change la couleur d'un indicateur d'état sans ajouter d'icône ou de texte ?"
+
+**🌱 Éco-conception :**
+- "Qui a un `Timer` ou une `ScheduledExecutorService` qui se déclenche toutes les X secondes pour vérifier des mises à jour ?"
+- "Qui fait des requêtes réseau une par une dans une boucle `for` ?"
+- "Qui charge des images PNG sans les compresser ?"
+
+> Les participants qui lèvent la main comprennent immédiatement *pourquoi* la règle existe. L'impact émotionnel est bien plus fort que d'apprendre une règle abstraite.
+
+---
 
 ### Step 5A — Create the security & privacy instructions
 

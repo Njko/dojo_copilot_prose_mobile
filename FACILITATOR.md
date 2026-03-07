@@ -14,6 +14,14 @@
 - [ ] Projector / screen share ready for "failure demo" in Phase 4
 - [ ] Timer visible to participants (use a projected countdown or browser tab)
 - [ ] Platform split: count Android vs iOS pairs — balance if possible
+- [ ] **Glossaire imprimé ou projeté** — voir section "Glossaire" dans `DOJO.md`. Distribuer avant de commencer ou afficher pendant la Phase 0. Réduit de ~70% les interruptions pour des définitions de termes.
+
+### Préparer les participants selon leur profil
+
+**Si la salle contient des profils débutants** (jamais de tests unitaires, pas de notion d'architecture en couches) :
+- Consacrer 5 minutes supplémentaires en Phase 0 pour expliquer le schéma Domain / Data / Presentation (3 boîtes sur un tableau)
+- Montrer visuellement le cycle TDD rouge/vert **avant** Phase 4, pas pendant
+- Pointer explicitement vers les guides d'outillage **avant** Phase 4 : [`ecotrack-android/docs/junit5-setup.md`](../ecotrack-android/docs/junit5-setup.md) et [`ecotrack-ios/docs/run-tests-vscode.md`](../ecotrack-ios/docs/run-tests-vscode.md)
 
 ### Starter kit backup
 
@@ -37,6 +45,8 @@ If running behind schedule, apply these cuts in order:
 | Skip eco-conception instructions file entirely | 3 min | Eco meta-lesson (pick up in debrief) |
 
 **Do not cut:** Phase 1 (hierarchy) or Phase 5 (safety boundaries) — these are the core PROSE insights.
+
+> **Phase 5 — Révélation guidée :** avant de créer les fichiers de sécurité/accessibilité/éco, posez les questions de révélation (voir `DOJO.md` Phase 5 intro). Les participants qui se reconnaissent dans les anti-patterns comprennent les règles comme des *corrections*, pas comme des contraintes. Même si vous manquez de temps, gardez ces 2 minutes — elles ont plus d'impact pédagogique que la création mécanique des fichiers.
 
 ---
 
@@ -70,6 +80,15 @@ Ask: "Could you read this scenario to your product manager and have them confirm
 
 **Redirect:** "Stop. How many things are in scope right now? Count them.
 If it's more than one domain concept, split the spec. Reduced Scope means one spec = one bounded context."
+
+### "Je ne comprends pas ce que veut dire [terme du glossaire]"
+
+**Redirect :** pointer vers la section Glossaire dans `DOJO.md`. Si la question revient souvent pendant la session, projetez le glossaire sur le côté de l'écran.
+Termes qui reviennent le plus fréquemment : *PII, invariant, value object, frontmatter, Sendable, Result\<T\>*.
+
+### "Pourquoi les tests doivent-ils échouer au départ ?"
+
+**Redirect :** "Si le test passe sans implémentation, soit il ne teste rien, soit l'implémentation existait déjà. Un test rouge prouve que le test est valide — il détectera un vrai problème. Un test vert sans code, c'est un faux sentiment de sécurité." Montrer le cycle sur le tableau : Rouge = le test sait ce qu'il veut → Vert = le code l'a satisfait.
 
 ### "Copilot ignored our instructions file and used `Log.d` with PII"
 
