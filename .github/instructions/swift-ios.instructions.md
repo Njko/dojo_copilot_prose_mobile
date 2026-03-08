@@ -317,7 +317,7 @@ final class HabitCompletionUITests: XCTestCase {
 | Use Case struct | `<Verb><Noun>UseCase` | `CompleteHabitUseCase` |
 | View Model | `<Feature>ViewModel` | `HabitListViewModel` |
 | SwiftUI View | `<Feature>View` | `HabitDetailView` |
-| Test double | `Fake<Protocol>` / `Mock<Protocol>` / `Stub<Protocol>` | `FakeHabitRepository` |
+| Test double | `Fake<Protocol>` / `InMemory<Protocol>` / `Mock<Protocol>` | `FakeHabitRepository` / `InMemoryHabitRepository` |
 | Test file | `<TypeUnderTest>Tests` | `CompleteHabitUseCaseTests` |
 | BDD test method | `test_given<Context>_when<Action>_then<Outcome>` | `test_givenFreshHabit_whenCompletedToday_thenStreakIsOne` |
 

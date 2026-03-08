@@ -26,7 +26,7 @@ An entity with a stable identity across time.
 |---|---|---|
 | `id` | UUID | Immutable; system-generated |
 | `name` | String | Non-blank; max 60 chars |
-| `category` | ActionCategory | Sealed type; see below |
+| `category` | HabitCategory | Sealed type; see below |
 | `createdAt` | Instant | UTC; immutable |
 | `isActive` | Boolean | Default `true` |
 
@@ -49,7 +49,7 @@ A single recorded occurrence of a Habit. Identified by its content, not by ident
 | Field | Type | Constraints |
 |---|---|---|
 | `habitId` | UUID | References a Habit |
-| `category` | ActionCategory | Copied from Habit at recording time |
+| `category` | HabitCategory | Copied from Habit at recording time |
 | `name` | String | Non-blank |
 | `distanceKm` | Double? | Required for Transport category; null otherwise |
 | `durationMinutes` | Int? | Optional for Energy category |
@@ -71,10 +71,12 @@ The user's annual CO2e before any habit changes.
 
 ---
 
-### Sealed Type: `ActionCategory`
+### Sealed Type: `HabitCategory`
+
+> **Source de vérité :** `HabitCategory` est le terme canonique du domaine — utilisé dans le code Kotlin (`enum class HabitCategory`) et Swift (`.transport`, `.food`, etc.). Ne pas créer d'enum alternatif `ActionCategory`. Voir `domain.instructions.md` pour la définition complète.
 
 ```
-ActionCategory
+HabitCategory
   ├── Transport   (cycling, walking, e-bike, bus, train, car, flight)
   ├── Food        (vegan, vegetarian, meat, fish)
   ├── Energy      (thermostat adjustment, renewable tariff, LED bulbs)

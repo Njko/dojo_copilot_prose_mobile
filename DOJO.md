@@ -103,6 +103,9 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 
 **Message pédagogique :** *"Ce fichier vient de changer le comportement de Copilot. C'est la lettre E de PROSE — Explicit Hierarchy. C'est ce qu'on va construire ensemble."*
 
+> **Pendant la démo — consigne participants :**
+> Fermez votre IDE. Regardez le projecteur. Votre seule mission ces 3 minutes : observer ce qui change dans la réponse de Copilot entre "avant" et "après" le fichier d'instructions. N'ouvrez VS Code qu'au signal de départ de Phase 1.
+
 **Pour référencer un fichier existant dans Copilot Chat (syntaxe exacte) :**
 - Taper `#` dans la zone de chat → une liste de fichiers apparaît
 - Sélectionner le fichier ou taper son nom
@@ -114,6 +117,9 @@ git clone <dojo-repo>
 cd ecotrack
 # Repo contains .git, README.md, and pre-scaffolded empty directories.
 # Every file participants create goes into an existing folder — no mkdir needed.
+code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les chemins
+          # relatifs des .prompt.md (ex: ../../ecotrack-domain.spec.md) fonctionnent correctement.
+          # Ne pas ouvrir sur ecotrack-ios/ ou ecotrack-android/ séparément.
 ```
 
 > **IDE — point important pour les participants iOS :**
@@ -126,12 +132,24 @@ cd ecotrack
 > **Bonne nouvelle :** Dans ce dojo, tu ne compiles pas une app, tu ne lances pas de simulateur. Tu fais uniquement du **Swift pur dans la couche domain** — aucune UI, aucun framework iOS. VS Code + `swift test` en terminal est exactement ce qu'il faut. Tu n'as pas besoin d'Xcode ici.
 
 > **Gate d'entrée iOS — 2 minutes avant de démarrer :**
+> Prérequis : **macOS 14 (Sonoma) ou supérieur** — `Package.swift` déclare `.macOS(.v14)`. Sur macOS 13, `swift test` échoue à la résolution des platforms, pas à la compilation.
 > Exécutez ces deux commandes dans le terminal. Si les deux réussissent, vous pouvez commencer Phase 1. Sinon, corrigez avant d'avancer — PROSE ne peut rien si les tests ne se lancent pas.
 > ```bash
-> swift --version          # doit afficher Swift 5.9+
-> cd ecotrack-ios && swift test --filter HabitStreakTests
-> # doit afficher : Test Suite '...' passed
+> sw_vers -productVersion   # doit afficher 14.x ou supérieur
+> swift --version           # doit afficher Swift 5.9+
+> cd ecotrack-ios && swift test --filter HabitCompletionBDDTests
+> # doit afficher : Test Suite 'HabitCompletionBDDTests' passed at ...
 > ```
+>
+> **Si `swift --version` échoue** (`command not found`) — récupération du PATH :
+> ```bash
+> # macOS avec Xcode installé — ajouter swift au PATH pour la session :
+> export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+> # Sans Xcode — installer les outils Apple Developer en ligne de commande :
+> xcode-select --install
+> # Puis relancer : swift --version
+> ```
+> Si l'erreur persiste, appeler le facilitateur — ne pas bloquer la session.
 
 - Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
 - `swift` dans le PATH : `swift --version` dans le terminal doit répondre
@@ -142,20 +160,33 @@ cd ecotrack
 ### Repo structure at start
 
 ```
-.github/
+.github/                              ← Instructions globales (Phase 1)
   instructions/    ← Phase 1B target
   prompts/         ← Phases 3–4 target
-ecotrack-android/app/src/
-  main/kotlin/com/ecotrack/domain/    ← Phase 4 implementation target
-  test/kotlin/com/ecotrack/domain/    ← Phase 4 test target
+ecotrack-android/
+  .github/instructions/              ← Instructions platform-spécifiques Android (pré-chargées)
+    kotlin-android.instructions.md
+  app/src/
+    main/kotlin/com/ecotrack/domain/    ← Phase 4 implementation target
+    test/kotlin/com/ecotrack/domain/    ← Phase 4 test target
 ecotrack-ios/
+  .github/instructions/              ← Instructions platform-spécifiques iOS (pré-chargées)
+    swift-ios.instructions.md
   Sources/EcoTrack/Domain/            ← Phase 4 implementation target (iOS)
   Tests/EcoTrackTests/Domain/         ← Phase 4 test target (iOS)
 ```
 
+> **Trois niveaux d'instructions Copilot dans ce repo :**
+> 1. `.github/instructions/` (racine) → règles globales : domaine, sécurité, accessibilité, éco — actives sur tous les fichiers selon leur `applyTo`
+> 2. `ecotrack-android/.github/instructions/` → règles Android uniquement (`kotlin-android.instructions.md`)
+> 3. `ecotrack-ios/.github/instructions/` → règles iOS uniquement (`swift-ios.instructions.md`)
+>
+> Copilot charge automatiquement les instructions du dossier `.github/` **le plus proche du fichier ouvert** (monorepo-aware). En pratique : ouvrir VS Code sur la racine charge les 3 niveaux ; les règles des sous-modules viennent en plus des règles globales. **Ne pas dupliquer** les règles globales dans les sous-modules.
+
 > **✓ Vérification IDE — 30 secondes avant de démarrer :**
 > Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Alt+I`).
-> Si la fenêtre Chat n'apparaît pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
+> **Si le raccourci ne fonctionne pas :** ouvrir via `Cmd+Shift+P` (macOS) ou `Ctrl+Shift+P` (Windows/Linux) → taper "GitHub Copilot: Open Chat" → Entrée. Alternatif : cliquer l'icône Copilot dans la barre latérale gauche.
+> Si la fenêtre Chat n'apparaît toujours pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
 > **Participants iOS :** si vous êtes sur Xcode, fermez-le et ouvrez VS Code — les fichiers `.instructions.md` ne sont pas lus par Copilot dans Xcode.
 
 ### Le pipeline que vous allez construire
@@ -250,6 +281,8 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 | Tests uniquement | `**/*Test.kt,**/*Tests.swift` |
 | Fichiers de build Gradle | `**/*.gradle,**/*.gradle.kts` |
 | Un sous-module spécifique | `feature/payments/**/*` |
+| **Domain Android — ce monorepo** | `ecotrack-android/app/src/**/domain/**` |
+| **Domain iOS — ce monorepo** | `ecotrack-ios/Sources/EcoTrack/Domain/**/*.swift` |
 
 > **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
 > **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
@@ -333,6 +366,8 @@ It should:
 ```
 
 > **Note — références anticipées :** Ce prompt file référence `security.instructions.md` et `accessibility.instructions.md` qui seront créés en **Phase 5**. Ajoutez ces références dès maintenant — Copilot les ignorera gracieusement si les fichiers sont absents, et les intégrera automatiquement dès qu'ils existeront. C'est la *Progressive Disclosure* en action : on structure le contexte en avance, on le remplit juste-à-temps.
+
+> **Note — les liens Markdown ne sont PAS des injections automatiques :** Les lignes comme `[ecotrack-domain.spec.md](../../ecotrack-domain.spec.md)` dans ce prompt sont du Markdown informatif. Copilot **ne charge pas** le contenu de ces fichiers automatiquement. Pour injecter le contenu d'un fichier dans Copilot Chat, utilisez `#` dans la zone de saisie (ex. `#ecotrack-domain.spec.md`) ou faites glisser le fichier dans la fenêtre Chat. Les liens Markdown servent de documentation et de rappel au participant — pas d'injection de contexte.
 
 ### Step 3B — Run the BDD prompt (live generation)
 
@@ -457,7 +492,7 @@ Les noms Given/When/Then du Gherkin deviennent des méthodes de test. Le scénar
 
 **iOS :**
 1. Ouvrir `ecotrack-ios/Sources/EcoTrack/Domain/UseCases/CompleteHabitUseCase.swift`
-2. Montrer la ligne : `throw HabitError.habitNotFound(habitID) // Remove this line when implementing`
+2. Montrer la ligne : `throw HabitError.habitNotFound(habitID) // TODO: Replace this stub with real implementation (steps 1–5 above)`
 3. (Optionnel, si l'extension `sswg.swift-lang` est installée) : ouvrir le panneau Testing — les 8 tests sont affichés en rouge sans commande terminal
 4. Dire : *"Le rouge est propre — pas d'erreur de compilation, juste un throw intentionnel. Copilot va le remplacer."*
 
@@ -470,6 +505,20 @@ Les noms Given/When/Then du Gherkin deviennent des méthodes de test. Le scénar
 ### Step 4A — Assembler le contexte PROSE dans Copilot Chat (3 min)
 
 > **L'acte pédagogique central de Phase 4 : charger plusieurs artefacts simultanément via `#`.** Les participants voient concrètement la "composition" avant que Copilot réponde.
+
+> **Android — ordre de migration des stubs (avant de coder) :**
+> Le fichier `LogHabitCompletionUseCaseTest.kt` contient des stubs en bas du fichier (classes `LogHabitCompletionUseCase` et `HabitNotFoundException`). Voici quoi faire dans quel ordre :
+>
+> | Étape | Action | Fichier cible |
+> |---|---|---|
+> | 1 | Laisser les stubs en place | `LogHabitCompletionUseCaseTest.kt` (ne pas toucher) |
+> | 2 | Demander à Copilot d'implémenter `execute()` dans le stub | Le stub en bas du même fichier |
+> | 3 | Copier la vraie classe dans un nouveau fichier | `domain/usecase/LogHabitCompletionUseCase.kt` |
+> | 4 | Copier `HabitNotFoundException` | `domain/model/HabitNotFoundException.kt` |
+> | 5 | Supprimer les stubs du fichier de test | `LogHabitCompletionUseCaseTest.kt` |
+> | 6 | Vérifier que les imports se résolvent | Le test doit compiler sans le stub |
+>
+> **Règle :** les tests ne doivent jamais être modifiés. Les stubs sont des échafaudages temporaires — ils vivent dans le fichier de test uniquement pour la durée de la phase. Les vrais fichiers vont dans `domain/usecase/` et `domain/model/`.
 
 **Android — charger ces 2 artefacts dans Copilot Chat (`Ctrl+Alt+I`) :**
 ```
@@ -705,6 +754,8 @@ Flag violations with: // ECO: <reason>
 
 **The Safety Boundaries insight:** These three files are guardrails. Every time Copilot generates code touching these file patterns, the instructions are in context. Copilot cannot forget the accessibility rule because the rule travels with the file type — not with the developer's memory.
 
+> **Limite de tokens — à communiquer aux participants :** Copilot charge l'ensemble des fichiers `.instructions.md` correspondant au fichier ouvert, mais la fenêtre de contexte d'instructions est limitée à environ **4 000 tokens**. Si la somme de vos fichiers d'instructions dépasse cette limite, Copilot tronquera silencieusement les derniers fichiers chargés. Symptôme : les règles de sécurité ou d'éco-conception semblent ignorées alors que les fichiers existent. Remède : garder chaque fichier `.instructions.md` concis (< 500 tokens / < 300 mots) et utiliser les fichiers `.prompt.md` pour le contexte ponctuel volumieux.
+
 > **Limite importante à communiquer :** Ces règles *augmentent la probabilité* que Copilot les respecte — elles ne le *garantissent pas*. Copilot peut générer du code qui viole une règle si le contexte est incomplet ou si la rule est ambiguë. La revue humaine reste indispensable. PROSE est un shift-left, pas une assurance.
 
 **Discussion prompt:** "What happens to these guardrails when a new developer joins the team?" → They inherit them immediately, on day one, without reading a wiki.
@@ -715,6 +766,15 @@ Flag violations with: // ECO: <reason>
 
 ## Phase 6 — Retrospective (53:00 – 60:00)
 ### "What would collapse without PROSE?"
+
+> **Amorçage — 1 minute de réflexion silencieuse avant le tour de table :**
+> Posez ces 3 questions à l'écrit (post-it ou pad partagé) — elles débloquent les groupes silencieux et structurent la discussion.
+>
+> 1. *"Quelle lettre de PROSE t'a le plus surpris aujourd'hui — et pourquoi ?"*
+> 2. *"Cite une chose que Copilot a générée correctement grâce à un artefact PROSE que tu avais créé. Sans cet artefact, qu'aurait-il généré ?"*
+> 3. *"Si tu devais intégrer une seule pratique PROSE dans ton équipe dès lundi, laquelle choisirais-tu ?"*
+>
+> Ces questions ancrent la rétro dans l'expérience vécue. Elles évitent les réponses abstraites ("c'était bien") et produisent des histoires concrètes — celles que les participants partageront avec leur équipe.
 
 Run a fast round-table. Each pair answers one question:
 
@@ -760,10 +820,14 @@ By the end of the dojo, each pair has produced:
     habit-bdd.prompt.md                ← P: Just-in-time BDD context
     carbon-calculator.prompt.md        ← O: Composition pipeline step
 ecotrack-domain.spec.md               ← R: Bounded scope contract
-src/domain/
-  CarbonCalculator.kt / .swift        ← O: Composed implementation
-  CarbonCalculatorTest.kt / .swift    ← O: TDD red→green cycle
 ```
+
+> **Bonus Round uniquement** (si temps disponible) :
+> ```
+> src/domain/
+>   CarbonCalculator.kt / .swift      ← O: exercice post-session
+>   CarbonCalculatorTest.kt / .swift  ← O: exercice post-session
+> ```
 
 ### Learning outcomes by constraint
 
