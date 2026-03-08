@@ -51,6 +51,9 @@ Participants will build the **domain core** of EcoTrack — not a full app, but 
 | **frontmatter** | Bloc de métadonnées YAML délimité par `---` en tête d'un fichier Markdown. Copilot lit le champ `applyTo` pour savoir à quels fichiers appliquer les instructions. |
 | **`Sendable`** (Swift) | Protocole Swift 6 garantissant qu'un type est thread-safe. Les `struct` avec uniquement des `let` le sont implicitement. |
 | **`Result<T>`** (Kotlin/Swift) | Type qui encapsule soit une valeur de succès, soit une erreur typée — sans `try/catch`. Préféré aux exceptions pour les erreurs métier attendues. |
+| **Fake** | Implémentation de test avec un état interne réel (ex : `InMemoryHabitRepository` stocke en mémoire). Ne vérifie pas les appels. C'est ce qu'utilise ce dojo. |
+| **Mock** | Objet de test qui vérifie que certaines méthodes ont été appelées avec certains arguments (ex : Mockito, MockK). Utilisé pour tester des interactions, pas un état. |
+| **Stub** | Implémentation minimale qui retourne des valeurs codées en dur, sans logique ni vérification. Le `TODO("Implement use case")` en Phase 4 est un stub. |
 
 ---
 
@@ -61,7 +64,8 @@ Participants will build the **domain core** of EcoTrack — not a full app, but 
 05:00 ─── E: Explicit Hierarchy     (10 min)  ← copilot-instructions.md + domain.instructions.md
 15:00 ─── R: Reduced Scope          (8 min)   ← ecotrack-domain.spec.md
 23:00 ─── P: Progressive Disclosure (10 min)  ← habit-bdd.prompt.md + live BDD generation
-33:00 ─── O: Orchestrated Comp.     (12 min)  ← carbon-calculator.prompt.md + TDD loop
+33:00 ─── O: Orchestrated Comp.     (12 min)  ← CompleteHabitUseCase / LogHabitCompletionUseCase TDD
+                                                  [carbon-calculator.prompt.md = Phase 4B si temps]
 45:00 ─── S: Safety Boundaries      (8 min)   ← security.instructions.md + accessibility review
 53:00 ─── Retrospective             (7 min)   ← "What would collapse without PROSE?"
 60:00 ─── End
