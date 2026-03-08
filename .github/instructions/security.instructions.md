@@ -9,8 +9,14 @@ Flag violations inline with `// SECURITY: <reason>` before the offending line.
 
 ## PII — Never Log or Expose
 
+NEVER log PII data at any log level.
+This applies to android.util.Log, Timber, or any logging framework.
+Bad: Log.d(TAG, "User: $userId")
+Bad: Timber.d("Habit name: ${habit.name}")
+Good: Log.d(TAG, "Habit ID: ${habitId}")  // ID only, not user content
+
 The following are PII and must never appear in:
-- Log statements (`Log.d`, `print`, `NSLog`, `console.log`)
+- Log statements (`Log.d`, `Timber.d`, `print`, `NSLog`, `console.log`, Logcat, or any logging framework)
 - Crash report payloads (Crashlytics, Sentry, Firebase)
 - Analytics event properties
 - Error messages surfaced to external services

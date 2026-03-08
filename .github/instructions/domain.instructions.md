@@ -18,6 +18,20 @@ They refine and extend the global instructions in `copilot-instructions.md`.
 | `FootprintBaseline` | Value Object | Annual CO2e in tCO2e; always positive; default 8.5 for EU average |
 | `UserProfile` | Aggregate Root | Owns a list of Habits and one FootprintBaseline |
 
+### Types de valeur CO₂ — distinction critique
+
+| Type | Sémantique | Plage | Exemple |
+|------|-----------|-------|---------|
+| `CarbonDelta` | Variation relative (économie ou émission) | (−∞, +∞) | Cyclisme = −1.8 kg |
+| `CarbonFootprint` | Accumulation absolue (total économisé) | [0, +∞) | Habitude a économisé 27 kg |
+
+**Règle :** `CarbonDelta` peut être négatif (saving). `CarbonFootprint` est toujours ≥ 0.
+Ne pas intervertir ces types — ils ne sont pas substituables.
+
+> **Note :** `ActionCategory` est la source de vérité pour la catégorie d'un habit ou d'une action.
+> `HabitCategory` est un alias de `ActionCategory` — utiliser `ActionCategory` dans tout nouveau code.
+> Ne jamais créer une troisième enum pour les catégories d'action.
+
 ## Domain Invariants (never violate)
 
 1. `CarbonDelta` is always finite — no `NaN`, no `Infinity`

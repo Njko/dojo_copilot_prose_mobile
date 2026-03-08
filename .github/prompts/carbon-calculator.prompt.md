@@ -3,6 +3,16 @@ mode: "chat"
 description: "Generate TDD unit tests and implementation for the CarbonCalculator domain function"
 ---
 
+> **Statut dans le dojo :** cet artefact est exécuté en **Phase 4B** (si le temps le permet) ou en **Bonus Round**.
+> Il reçoit en input les scénarios BDD produits par `habit-bdd.prompt.md` et complète la pipeline O (BDD → tests rouges → implémentation verte).
+> Si le temps manque, l'animateur peut le montrer ouvert sans l'exécuter — sa structure illustre O à elle seule.
+
+> **Checklist avant d'exécuter — 30 secondes :**
+> - [ ] `{{HABIT_CATEGORY}}` remplacé par une valeur concrète (ex: `transport`)
+> - [ ] `{{PLATFORM}}` remplacé par `android (Kotlin/JUnit5)` ou `ios (Swift/XCTest)`
+> - [ ] Les scénarios BDD de `habit-bdd.prompt.md` ont été générés en amont
+> - [ ] Fichier sauvegardé (`Ctrl+S` / `Cmd+S`)
+
 # CarbonCalculator TDD Generator
 
 ## Context

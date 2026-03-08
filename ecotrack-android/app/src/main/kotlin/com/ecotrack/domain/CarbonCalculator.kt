@@ -46,10 +46,11 @@ sealed class ActionCategory {
 // ---------------------------------------------------------------------------
 
 /**
- * Value object representing a carbon footprint delta in kg CO₂ equivalent.
+ * Carbon footprint delta in kgCO₂ equivalent.
  *
- * A **negative** value means CO₂ was avoided (the action is beneficial).
- * A **positive** value means CO₂ was emitted.
+ * **Negative** values mean CO₂ was avoided (the action is beneficial).
+ * **Positive** values mean CO₂ was emitted.
+ * **Zero** means neutral impact.
  *
  * Invariant: [kgCO2e] must be finite and not NaN.
  *

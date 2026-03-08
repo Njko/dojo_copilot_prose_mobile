@@ -292,3 +292,26 @@ When generating any data-fetching or background code:
 4. Cache aggressively in Room — avoid network calls if local data is fresh (< 15 minutes)
 5. Use `Paging 3` for lists > 50 items
 6. Prefer SVG/vector assets over PNG bitmaps
+
+## Logging conventions
+
+Prefer [Timber](https://github.com/JakeWharton/timber) over `android.util.Log` for all logging.
+Timber integrates with crash reporters, respects release/debug builds, and removes boilerplate tags.
+
+```kotlin
+// Correct — Timber
+Timber.d("Habit saved: %s", habit.id.value)
+Timber.e(exception, "Failed to complete habit")
+
+// Avoid — android.util.Log
+Log.d(TAG, "Habit saved: ${habit.id}") // no crash integration, verbose tag setup
+```
+
+**PII rule — applies to all logging frameworks (Log, Timber, Logcat, etc.) :**
+- NEVER log user-generated content: habit names, notes, personal descriptions
+- NEVER log user identifiers in plain text (name, email, phone)
+- Habit IDs and system events are safe to log
+- Bad: `Timber.d("Completing habit: ${habit.title}")`
+- Good: `Timber.d("Completing habit ID: %s", habitId.value)`
+
+Domain layer: no logging of any kind. Logging belongs in use cases and above.
