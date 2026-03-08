@@ -57,7 +57,7 @@ public struct CompleteHabitUseCase: Sendable {
         logger.info("Completing habit \(habitID, privacy: .public) on \(date, privacy: .private)")
         #endif
 
-        throw HabitError.habitNotFound(habitID) // Remove this line when implementing
+        throw HabitError.habitNotFound(habitID) // TODO: Replace this stub with real implementation (steps 1–5 above)
     }
 }
 

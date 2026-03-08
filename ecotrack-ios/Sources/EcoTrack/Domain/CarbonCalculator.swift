@@ -29,8 +29,8 @@ public enum ActionCategory: String, CaseIterable, Sendable {
 
 /// Immutable value object representing the CO₂ equivalent delta produced by an action.
 ///
-/// A negative value means CO₂ was avoided (e.g. cycling instead of driving).
-/// A positive value means CO₂ was emitted.
+/// Negative values indicate CO₂ avoided (the action is beneficial). Positive values indicate CO₂ emitted.
+/// Example: cycling instead of driving over 12 km produces −1.8 kgCO2e (a saving).
 ///
 /// **Invariants:**
 /// - `kgCO2e` is always finite (never `NaN`, never infinite).
@@ -199,7 +199,7 @@ public enum CarbonCalculator {
             return busFactor
         } else if lowercased.contains("train") || lowercased.contains("rail") || lowercased.contains("metro") || lowercased.contains("subway") || lowercased.contains("tram") {
             return trainFactor
-        } else if lowercased.contains("flight") || lowercased.contains("fly") || lowercased.contains("plane") || lowercased.contains("air") {
+        } else if lowercased.contains("flight") || lowercased.contains("fly") || lowercased.contains("plane") || lowercased.contains("airplane") {
             return flightFactor
         } else {
             // Default: car (delta = 0)

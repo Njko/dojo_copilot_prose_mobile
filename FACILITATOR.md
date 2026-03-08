@@ -15,6 +15,9 @@
 - [ ] Timer visible to participants (use a projected countdown or browser tab)
 - [ ] Platform split: count Android vs iOS pairs — balance if possible
 - [ ] **Glossaire imprimé ou projeté** — voir section "Glossaire" dans `DOJO.md`. Distribuer avant de commencer ou afficher pendant la Phase 0. Réduit de ~70% les interruptions pour des définitions de termes.
+- [ ] **Vérifier les frontmatters PROSE** : s'assurer que les fichiers `.instructions.md` ont leur bloc `---` YAML.
+  Si le script `scripts/validate-prose.sh` existe, le lancer. Sinon, vérifier manuellement les 3 premières lignes de chaque fichier dans `.github/instructions/`.
+  Un fichier sans frontmatter est **silencieusement ignoré** par Copilot — source de 10+ minutes de debugging.
 
 ### Préparer les participants selon leur profil
 
@@ -154,6 +157,15 @@ Use a quick "1-2-4-All" format for the 7-minute retro:
 
 **Target landing:** Participants leave with a personal story of a real problem PROSE would have prevented.
 That story is what they'll share with their team on Monday.
+
+**Question bonus haute-valeur (si temps disponible) :**
+> *"Imaginez que 3 développeurs freelance rejoignent votre équipe demain, en remote, sans onboarding verbal.
+> Comment ils héritent de vos règles domaine, sécurité et accessibilité — sans une heure de vidéo ?*"
+>
+> Réponse attendue : "Les fichiers `.github/instructions/*.instructions.md` sont dans le repo.
+> Copilot les lit automatiquement dès le premier clone."
+>
+> **C'est le moment où PROSE passe de "technique intéressante" à "valeur équipe concrète".**
 
 ---
 

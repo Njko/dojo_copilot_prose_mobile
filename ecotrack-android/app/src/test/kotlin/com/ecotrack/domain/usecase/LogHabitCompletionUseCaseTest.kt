@@ -127,6 +127,13 @@ class LogHabitCompletionUseCaseTest {
 // Stubs — participants delete these once they create the real classes
 // ---------------------------------------------------------------------------
 
+// TODO (DOJO Phase 4 Exercise): Implement the execute() method below.
+// Replace TODO("Implement use case") with the real logic:
+//   1. Call habitRepository.findById(params.habitId)
+//   2. Return Result.failure(HabitNotFoundException) if not found
+//   3. Record completion (idempotent if already completed today)
+//   4. Save the updated habit
+//   5. Return Result.success(CompletionResult(carbonSavedGrams))
 // TODO: Replace with real class in domain/usecase/LogHabitCompletionUseCase.kt
 class LogHabitCompletionUseCase(private val habitRepository: HabitRepository) {
     data class Params(val habitId: HabitId, val userId: UserId, val note: String? = null)

@@ -173,7 +173,8 @@ public struct EcoImpact: Hashable, Sendable {
 // MARK: - CarbonFootprint (Value Object)
 
 /// Immutable value object representing a CO₂ equivalent mass.
-/// Always positive. Use `.zero` for no impact.
+/// Always ≥ 0 — represents an accumulated saving or absolute total, never a negative delta.
+/// Use `.zero` for no impact. Unlike `CarbonDelta`, this type cannot be negative.
 public struct CarbonFootprint: Hashable, Comparable, Sendable {
 
     /// CO₂ equivalent in kilograms.

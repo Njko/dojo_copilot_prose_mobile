@@ -116,6 +116,13 @@ cd ecotrack
 > Les fichiers `.github/instructions/*.instructions.md` et `.github/prompts/*.prompt.md` sont lus automatiquement par Copilot dans VS Code.
 > Dans Xcode, cette intégration n'est pas disponible et les fichiers d'instructions seront ignorés.
 
+**iOS — Prérequis VS Code (vérifier avant de démarrer) :**
+- Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
+- `swift` dans le PATH : `swift --version` dans le terminal doit répondre
+- Lancer les tests : `cd ecotrack-ios && swift test`
+- Structure SPM : les fichiers dans `Sources/EcoTrack/Domain/` sont inclus automatiquement.
+  `Package.swift` exclut `Presentation/` intentionnellement — c'est hors périmètre dojo.
+
 ### Repo structure at start
 
 ```
@@ -301,6 +308,11 @@ It should:
 
 **Comment exécuter un fichier `.prompt.md` dans Copilot Chat — procédure exacte :**
 
+> ⚠️ **Piège fréquent — à faire AVANT d'ouvrir Copilot Chat :**
+> Copilot ne substitue PAS `{{variables}}` automatiquement.
+> Ouvrir le fichier → remplacer `{{HABIT_CATEGORY}}` → sauvegarder (`Ctrl+S`) → PUIS ouvrir Chat.
+> Si oublié : le Gherkin généré contiendra littéralement `{{HABIT_CATEGORY}}`.
+
 > **Avant toute chose — checklist en 10 secondes :**
 > - [ ] J'ai remplacé `{{HABIT_CATEGORY}}` par `transport` dans le fichier
 > - [ ] J'ai sauvegardé (`Ctrl+S` / `Cmd+S`)
@@ -348,6 +360,22 @@ Feature: Transport Habit Tracking
 
 ---
 
+---
+
+### ✓ Checkpoint de validation — 30 secondes avant Phase 4
+
+Vérifier avant de continuer (sans ça, la composition Phase 4 échoue silencieusement) :
+
+- [ ] `.github/copilot-instructions.md` existe et commence par `---` (frontmatter présent)
+- [ ] `.github/instructions/domain.instructions.md` : `applyTo:` correspond aux chemins réels du repo
+- [ ] `ecotrack-domain.spec.md` existe à la racine et contient une section "Out of Scope"
+- [ ] `.github/prompts/habit-bdd.prompt.md` créé
+- [ ] `{{HABIT_CATEGORY}}` **remplacé** par une valeur réelle (ex. `transport`) et fichier sauvegardé
+
+> **Si un point manque → corriger maintenant.** Une instruction sans frontmatter n'existe pas pour Copilot. Un prompt avec `{{...}}` non remplacé génère du Gherkin inutilisable.
+
+---
+
 ## Phase 4 — O: Orchestrated Composition (33:00 – 45:00)
 ### PROSE Constraint: Simple things compose; complex things collapse
 
@@ -361,6 +389,8 @@ Le repo contient déjà deux cibles TDD prêtes-à-l'emploi, avec un stub qui é
 |---|---|---|---|
 | Android | `LogHabitCompletionUseCaseTest.kt` | méthode `execute()` dans le stub en bas du fichier | `TODO("Implement use case")` |
 | iOS | `CompleteHabitUseCaseTests.swift` | `CompleteHabitUseCase.execute(habitID:on:note:)` | `throw HabitError.habitNotFound(habitID)` |
+
+> **Chemin complet Android :** `ecotrack-android/app/src/test/kotlin/com/ecotrack/domain/usecase/LogHabitCompletionUseCaseTest.kt`
 
 Le participant n'a pas à créer les tests. Il assemble les artefacts PROSE produits dans les phases précédentes et demande à Copilot de compléter l'implémentation.
 
@@ -453,6 +483,16 @@ Copilot génère le corps de la méthode. Le participant accepte et vérifie vis
 
 Si `./gradlew test` ou l'extension Swift sont disponibles : lancer les tests et observer le vert.
 Sinon : comparer côte à côte le test et l'implémentation — pointer chaque assertion et la ligne qui la satisfait.
+
+**Si l'implémentation générée ne passe pas les tests :**
+
+Ce cas arrive — c'est normal. Copilot est un pair, pas un pilote automatique.
+
+Stratégies rapides (dans cet ordre) :
+1. **Lire l'erreur de test** → la coller dans Chat : *"This test is failing with this error: [paste]. Why?"*
+2. **Réduire le scope** → demander une seule étape : *"Implement only the fetchHabit call and the null check"*
+3. **Demander d'expliquer** avant d'accepter : *"Explain why line X satisfies test Y"*
+4. **Ajouter un artefact manquant** → si Copilot utilise un mauvais nom de type, vérifier qu'il a bien `#test-file` en contexte
 
 ---
 
@@ -625,6 +665,11 @@ src/domain/
 ---
 
 ## Bonus Round (if time permits or async homework)
+
+> **Note :** `carbon-calculator.prompt.md` n'est pas exécuté pendant le dojo principal.
+> Il est disponible comme exercice post-session pour appliquer le même pipeline PROSE
+> à une autre cible (CarbonCalculator au lieu de LogHabitCompletionUseCase).
+> Si votre session se termine tôt, c'est le premier bonus à essayer.
 
 ### Observability challenge
 ```

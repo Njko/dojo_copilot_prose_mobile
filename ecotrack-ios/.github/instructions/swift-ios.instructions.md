@@ -320,3 +320,24 @@ final class HabitCompletionUITests: XCTestCase {
 | Test double | `Fake<Protocol>` / `Mock<Protocol>` / `Stub<Protocol>` | `FakeHabitRepository` |
 | Test file | `<TypeUnderTest>Tests` | `CompleteHabitUseCaseTests` |
 | BDD test method | `test_given<Context>_when<Action>_then<Outcome>` | `test_givenFreshHabit_whenCompletedToday_thenStreakIsOne` |
+
+---
+
+## VS Code + Swift — Prérequis session
+
+### Extension requise
+- `sswg.swift-lang` (Swift Language Support) — `Cmd+Shift+P` → "Extensions" → "sswg.swift-lang"
+- Vérifier : ouvrir un `.swift`, les types affichent du type inference inline
+
+### Lancer les tests
+```bash
+# Depuis la racine du package iOS
+cd ecotrack-ios
+swift test                                     # tous les tests
+swift test --filter CompleteHabitUseCaseTests  # un seul fichier
+```
+
+### SPM — ce qu'il faut savoir
+- Les fichiers dans `Sources/EcoTrack/Domain/` sont inclus **automatiquement** — pas de config
+- `Package.swift` exclut `Presentation/` — c'est intentionnel (hors périmètre dojo)
+- Si `swift test` échoue avec "no such module", vérifier que `swift` est dans le PATH : `which swift`

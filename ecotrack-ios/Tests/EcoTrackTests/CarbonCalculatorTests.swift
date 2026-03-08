@@ -201,6 +201,20 @@ final class CarbonCalculatorTests: XCTestCase {
         }
     }
 
+    // MARK: - Scenario: Action name containing "air" but not a flight keyword uses car baseline
+
+    /// Given a transport input named "airbnb office commute" (contains "air" but is not a flight)
+    /// When I calculate the carbon delta
+    /// Then the result is 0.0 kgCO2e (car baseline, not flight factor)
+    func test_actionNameContainingAir_butNotFlight_usesCarBaseline() throws {
+        // "airbnb" should not be confused with "airplane"
+        let input = CarbonInput(category: .transport, name: "airbnb office commute", distanceKm: 10.0)
+        let delta = try CarbonCalculator.calculate(input)
+        // Should use car baseline (delta = 0.0) not flight factor
+        XCTAssertEqual(delta.kgCO2e, 0.0, accuracy: 0.001,
+            "Action containing 'air' but not 'flight/plane/airplane' should default to car baseline")
+    }
+
     // MARK: - Additional: Non-transport categories with distance still return zero
 
     /// Given food/energy/waste inputs (even with a distance)
