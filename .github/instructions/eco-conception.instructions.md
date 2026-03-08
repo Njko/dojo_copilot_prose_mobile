@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.kt, **/*.swift"
+applyTo: "**/*.kt,**/*.swift"
 ---
 
 # EcoTrack Eco-Conception Instructions

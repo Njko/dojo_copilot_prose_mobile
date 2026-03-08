@@ -114,6 +114,9 @@ git clone <dojo-repo>
 cd ecotrack
 # Repo contains .git, README.md, and pre-scaffolded empty directories.
 # Every file participants create goes into an existing folder — no mkdir needed.
+code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les chemins
+          # relatifs des .prompt.md (ex: ../../ecotrack-domain.spec.md) fonctionnent correctement.
+          # Ne pas ouvrir sur ecotrack-ios/ ou ecotrack-android/ séparément.
 ```
 
 > **IDE — point important pour les participants iOS :**
@@ -132,6 +135,16 @@ cd ecotrack
 > cd ecotrack-ios && swift test --filter HabitStreakTests
 > # doit afficher : Test Suite '...' passed
 > ```
+>
+> **Si `swift --version` échoue** (`command not found`) — récupération du PATH :
+> ```bash
+> # macOS avec Xcode installé — ajouter swift au PATH pour la session :
+> export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+> # Sans Xcode — installer les outils Apple Developer en ligne de commande :
+> xcode-select --install
+> # Puis relancer : swift --version
+> ```
+> Si l'erreur persiste, appeler le facilitateur — ne pas bloquer la session.
 
 - Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
 - `swift` dans le PATH : `swift --version` dans le terminal doit répondre
@@ -142,16 +155,28 @@ cd ecotrack
 ### Repo structure at start
 
 ```
-.github/
+.github/                              ← Instructions globales (Phase 1)
   instructions/    ← Phase 1B target
   prompts/         ← Phases 3–4 target
-ecotrack-android/app/src/
-  main/kotlin/com/ecotrack/domain/    ← Phase 4 implementation target
-  test/kotlin/com/ecotrack/domain/    ← Phase 4 test target
+ecotrack-android/
+  .github/instructions/              ← Instructions platform-spécifiques Android (pré-chargées)
+    kotlin-android.instructions.md
+  app/src/
+    main/kotlin/com/ecotrack/domain/    ← Phase 4 implementation target
+    test/kotlin/com/ecotrack/domain/    ← Phase 4 test target
 ecotrack-ios/
+  .github/instructions/              ← Instructions platform-spécifiques iOS (pré-chargées)
+    swift-ios.instructions.md
   Sources/EcoTrack/Domain/            ← Phase 4 implementation target (iOS)
   Tests/EcoTrackTests/Domain/         ← Phase 4 test target (iOS)
 ```
+
+> **Trois niveaux d'instructions Copilot dans ce repo :**
+> 1. `.github/instructions/` (racine) → règles globales : domaine, sécurité, accessibilité, éco — actives sur tous les fichiers selon leur `applyTo`
+> 2. `ecotrack-android/.github/instructions/` → règles Android uniquement (`kotlin-android.instructions.md`)
+> 3. `ecotrack-ios/.github/instructions/` → règles iOS uniquement (`swift-ios.instructions.md`)
+>
+> Copilot charge automatiquement les instructions du dossier `.github/` **le plus proche du fichier ouvert** (monorepo-aware). En pratique : ouvrir VS Code sur la racine charge les 3 niveaux ; les règles des sous-modules viennent en plus des règles globales. **Ne pas dupliquer** les règles globales dans les sous-modules.
 
 > **✓ Vérification IDE — 30 secondes avant de démarrer :**
 > Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Alt+I`).
@@ -471,6 +496,20 @@ Les noms Given/When/Then du Gherkin deviennent des méthodes de test. Le scénar
 
 > **L'acte pédagogique central de Phase 4 : charger plusieurs artefacts simultanément via `#`.** Les participants voient concrètement la "composition" avant que Copilot réponde.
 
+> **Android — ordre de migration des stubs (avant de coder) :**
+> Le fichier `LogHabitCompletionUseCaseTest.kt` contient des stubs en bas du fichier (classes `LogHabitCompletionUseCase` et `HabitNotFoundException`). Voici quoi faire dans quel ordre :
+>
+> | Étape | Action | Fichier cible |
+> |---|---|---|
+> | 1 | Laisser les stubs en place | `LogHabitCompletionUseCaseTest.kt` (ne pas toucher) |
+> | 2 | Demander à Copilot d'implémenter `execute()` dans le stub | Le stub en bas du même fichier |
+> | 3 | Copier la vraie classe dans un nouveau fichier | `domain/usecase/LogHabitCompletionUseCase.kt` |
+> | 4 | Copier `HabitNotFoundException` | `domain/model/HabitNotFoundException.kt` |
+> | 5 | Supprimer les stubs du fichier de test | `LogHabitCompletionUseCaseTest.kt` |
+> | 6 | Vérifier que les imports se résolvent | Le test doit compiler sans le stub |
+>
+> **Règle :** les tests ne doivent jamais être modifiés. Les stubs sont des échafaudages temporaires — ils vivent dans le fichier de test uniquement pour la durée de la phase. Les vrais fichiers vont dans `domain/usecase/` et `domain/model/`.
+
 **Android — charger ces 2 artefacts dans Copilot Chat (`Ctrl+Alt+I`) :**
 ```
 #domain.instructions.md  #LogHabitCompletionUseCaseTest.kt
@@ -715,6 +754,15 @@ Flag violations with: // ECO: <reason>
 
 ## Phase 6 — Retrospective (53:00 – 60:00)
 ### "What would collapse without PROSE?"
+
+> **Amorçage — 1 minute de réflexion silencieuse avant le tour de table :**
+> Posez ces 3 questions à l'écrit (post-it ou pad partagé) — elles débloquent les groupes silencieux et structurent la discussion.
+>
+> 1. *"Quelle lettre de PROSE t'a le plus surpris aujourd'hui — et pourquoi ?"*
+> 2. *"Cite une chose que Copilot a générée correctement grâce à un artefact PROSE que tu avais créé. Sans cet artefact, qu'aurait-il généré ?"*
+> 3. *"Si tu devais intégrer une seule pratique PROSE dans ton équipe dès lundi, laquelle choisirais-tu ?"*
+>
+> Ces questions ancrent la rétro dans l'expérience vécue. Elles évitent les réponses abstraites ("c'était bien") et produisent des histoires concrètes — celles que les participants partageront avec leur équipe.
 
 Run a fast round-table. Each pair answers one question:
 
