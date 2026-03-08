@@ -3,7 +3,7 @@
 
 > **Duration:** 60 minutes
 > **Audience:** Android & iOS developers (mixed pairs encouraged)
-> **Tools:** GitHub Copilot (Chat + Completions), VS Code or JetBrains IDE
+> **Tools:** GitHub Copilot (Chat + Completions), **VS Code** (requis — voir note JetBrains ci-dessous)
 > **Level:** Intermediate — participants know their mobile stack; PROSE is new to them
 
 ---
@@ -114,18 +114,21 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 ### Setup commands
 ```bash
 git clone <dojo-repo>
-cd ecotrack
-# Repo contains .git, README.md, and pre-scaffolded empty directories.
-# Every file participants create goes into an existing folder — no mkdir needed.
+cd <nom-du-repo-cloné>          # ex: cd dojo_copilot_prose_mobile
+git checkout -b dojo-$(date +%Y%m%d)   # branche personnelle (évite de modifier main)
+# Repo contains .git, README.md, pre-scaffolded directories, and pre-loaded test files.
+# Every PROSE artifact you create goes into an existing folder — no mkdir needed.
 code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les chemins
           # relatifs des .prompt.md (ex: ../../ecotrack-domain.spec.md) fonctionnent correctement.
           # Ne pas ouvrir sur ecotrack-ios/ ou ecotrack-android/ séparément.
 ```
 
-> **IDE — point important pour les participants iOS :**
-> Utilisez **VS Code** avec l'extension [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) pour ce dojo — pas Xcode.
+> **IDE — point important pour tous les participants :**
+> Utilisez **VS Code** avec l'extension [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) pour ce dojo — pas Xcode, pas Android Studio.
 > Les fichiers `.github/instructions/*.instructions.md` et `.github/prompts/*.prompt.md` sont lus automatiquement par Copilot dans VS Code.
-> Dans Xcode, cette intégration n'est pas disponible et les fichiers d'instructions seront ignorés.
+> Dans Xcode ou Android Studio, cette intégration n'est pas disponible et les fichiers d'instructions seront ignorés.
+>
+> **Note JetBrains :** GitHub Copilot pour JetBrains IDE (Android Studio, IntelliJ) charge uniquement `.github/copilot-instructions.md` à la racine. Les fichiers `.instructions.md` dans `.github/instructions/` (multi-niveau, `applyTo`, hiérarchie PROSE) ne sont **pas** détectés automatiquement dans JetBrains. La hiérarchie à 3 niveaux décrite dans ce dojo est une fonctionnalité VS Code.
 
 **iOS — Prérequis VS Code (vérifier avant de démarrer) :**
 
@@ -156,6 +159,14 @@ code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les c
 - Lancer les tests : `cd ecotrack-ios && swift test`
 - Structure SPM : les fichiers dans `Sources/EcoTrack/Domain/` sont inclus automatiquement.
   `Package.swift` exclut `Presentation/` intentionnellement — c'est hors périmètre dojo.
+
+**Android — Gate d'entrée (2 minutes avant de démarrer) :**
+```bash
+cd ecotrack-android
+./gradlew :app:testDebugUnitTest --tests "com.ecotrack.domain.CarbonCalculatorTest"
+# doit afficher : BUILD SUCCESSFUL — 6 tests run
+```
+> **Note :** les tests Android utilisent JUnit 4 (`org.junit.Test`) dans `LogHabitCompletionUseCaseTest.kt` et JUnit 5 (`org.junit.jupiter.api.Test`) dans `CarbonCalculatorTest.kt`. Les deux coexistent via le plugin `de.mannodermaus.android-junit5` — c'est intentionnel et sans impact sur l'exercice. `copilot-instructions.md` dit "JUnit 5" comme cible par défaut pour le nouveau code ; les tests pré-chargés utilisent JUnit 4 par convention existante.
 
 ### Repo structure at start
 
@@ -221,8 +232,10 @@ ecotrack-ios/
 **Learning outcome:** Participants understand that Copilot reads context in layers. Global rules go in `.github/copilot-instructions.md`. Domain rules go in `.github/instructions/*.instructions.md`. Task rules go in `.prompt.md` files. The hierarchy ensures the right guidance is always present — never too much, never too little.
 
 > **Deux types de fichiers Copilot — une ligne chacun :**
-> - **`.instructions.md`** avec `applyTo:` = règles **permanentes**, actives automatiquement sur tous les fichiers correspondant au glob. Pas besoin de les invoquer.
-> - **`.prompt.md`** avec `mode: "chat"` = tâche **ponctuelle**, exécutée manuellement via `#` dans Copilot Chat. À invoquer quand vous en avez besoin.
+> - **`.instructions.md`** avec `applyTo:` = règles **permanentes**, actives automatiquement sur tous les fichiers correspondant au glob — y compris les completions inline (tab), pas seulement le Chat. Pas besoin de les invoquer.
+> - **`.prompt.md`** avec `mode: "ask"` = tâche **ponctuelle**, exécutée manuellement via `#` dans Copilot Chat. À invoquer quand vous en avez besoin.
+>
+> **Modes disponibles pour `.prompt.md` :** `ask` (lecture seule, questions) · `edit` (modification directe de fichier) · `agent` (actions autonomes : lit des fichiers, lance des commandes, itère). Ce dojo utilise `ask` — le mode `agent` est mentionné dans les Nouveautés (section finale) comme prochaine étape PROSE.
 
 ### Step 1A — Create the global instructions file (5 min)
 
@@ -287,7 +300,7 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 > **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
 > **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
 
-> **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot ignore intégralement le fichier. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
+> **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot n'activera jamais ce fichier automatiquement — même s'il existe sur disque. Le fichier reste accessible manuellement via `#` dans le Chat, mais ne sera jamais injecté par défaut. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
 
 **What participants observe:** The `applyTo` frontmatter field scopes these rules. Copilot will only inject them when editing domain files. This is Explicit Hierarchy in action — global rules always apply; scoped rules apply contextually.
 
@@ -365,7 +378,7 @@ It should:
 - Include a variable: {{HABIT_CATEGORY}} so the prompt is reusable per category
 ```
 
-> **Note — références anticipées :** Ce prompt file référence `security.instructions.md` et `accessibility.instructions.md` qui seront créés en **Phase 5**. Ajoutez ces références dès maintenant — Copilot les ignorera gracieusement si les fichiers sont absents, et les intégrera automatiquement dès qu'ils existeront. C'est la *Progressive Disclosure* en action : on structure le contexte en avance, on le remplit juste-à-temps.
+> **Note — références anticipées :** Ce prompt file référence `security.instructions.md` et `accessibility.instructions.md` qui seront créés en **Phase 5**. Ajoutez ces références (liens Markdown) dès maintenant — elles sont informationnelles et n'affectent pas Copilot si les fichiers sont absents. En revanche, si vous référencez ces fichiers avec `#` dans le Chat avant qu'ils existent, Copilot retournera une erreur "fichier introuvable". Utilisez `#` uniquement après que les fichiers existent. C'est la *Progressive Disclosure* en action : on structure le contexte en avance, on le remplit juste-à-temps.
 
 > **Note — les liens Markdown ne sont PAS des injections automatiques :** Les lignes comme `[ecotrack-domain.spec.md](../../ecotrack-domain.spec.md)` dans ce prompt sont du Markdown informatif. Copilot **ne charge pas** le contenu de ces fichiers automatiquement. Pour injecter le contenu d'un fichier dans Copilot Chat, utilisez `#` dans la zone de saisie (ex. `#ecotrack-domain.spec.md`) ou faites glisser le fichier dans la fenêtre Chat. Les liens Markdown servent de documentation et de rappel au participant — pas d'injection de contexte.
 
@@ -537,6 +550,8 @@ Rules:
 - Store params.note on the completion entry if not null
 - No Android imports. No logging. Pure suspend function.
 ```
+
+> **Note — comportement d'idempotence Android vs iOS :** Ces deux use cases ont des comportements intentionnellement différents pour la double complétion. **Android** retourne `Result.success` si déjà complété aujourd'hui (idempotent silencieux — convention Android courante). **iOS** lève `HabitError.alreadyCompletedToday` (idempotent explicite — convention Swift Error). Les deux sont valides ; c'est un choix de design platform-spécifique documenté dans les tests respectifs. C'est un bon point de discussion en rétro : *"Quelle approche préférez-vous ?"*
 
 **iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Alt+I`) :**
 ```
@@ -754,7 +769,7 @@ Flag violations with: // ECO: <reason>
 
 **The Safety Boundaries insight:** These three files are guardrails. Every time Copilot generates code touching these file patterns, the instructions are in context. Copilot cannot forget the accessibility rule because the rule travels with the file type — not with the developer's memory.
 
-> **Limite de tokens — à communiquer aux participants :** Copilot charge l'ensemble des fichiers `.instructions.md` correspondant au fichier ouvert, mais la fenêtre de contexte d'instructions est limitée à environ **4 000 tokens**. Si la somme de vos fichiers d'instructions dépasse cette limite, Copilot tronquera silencieusement les derniers fichiers chargés. Symptôme : les règles de sécurité ou d'éco-conception semblent ignorées alors que les fichiers existent. Remède : garder chaque fichier `.instructions.md` concis (< 500 tokens / < 300 mots) et utiliser les fichiers `.prompt.md` pour le contexte ponctuel volumieux.
+> **Limite de tokens — à communiquer aux participants :** Copilot charge l'ensemble des fichiers `.instructions.md` correspondant au fichier ouvert. GitHub ne publie pas de limite officielle, mais les retours terrain indiquent une limite pratique autour de **~4 000 tokens** (approximation — non documentée officiellement), au-delà de laquelle Copilot tronque silencieusement les derniers fichiers chargés. Symptôme : les règles de sécurité ou d'éco-conception semblent ignorées alors que les fichiers existent. Remède : garder chaque fichier `.instructions.md` concis (< 500 tokens / < 300 mots) et utiliser les fichiers `.prompt.md` pour le contexte ponctuel volumieux.
 
 > **Limite importante à communiquer :** Ces règles *augmentent la probabilité* que Copilot les respecte — elles ne le *garantissent pas*. Copilot peut générer du code qui viole une règle si le contexte est incomplet ou si la rule est ambiguë. La revue humaine reste indispensable. PROSE est un shift-left, pas une assurance.
 
