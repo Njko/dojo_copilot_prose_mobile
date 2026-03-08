@@ -93,10 +93,11 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 **Script :**
 
 1. Ouvrir VS Code avec le repo cloné
-2. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+2. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Alt+I`)
 3. Taper dans le chat : *"Write a function that calculates carbon saved."*
 4. Montrer la réponse : noms génériques, pas de langage domaine, probablement un réseau ou une DB
 5. Créer en live un fichier `.github/copilot-instructions.md` vide avec une seule règle : *"Use the term CarbonDelta for any carbon calculation result."*
+5b. **Fermer et rouvrir le panneau Copilot Chat** (important — le contexte de la session précédente doit être effacé pour que la démo soit probante)
 6. Retaper la même question dans le chat
 7. Montrer que le terme `CarbonDelta` apparaît maintenant dans la réponse
 
@@ -124,6 +125,14 @@ cd ecotrack
 
 > **Bonne nouvelle :** Dans ce dojo, tu ne compiles pas une app, tu ne lances pas de simulateur. Tu fais uniquement du **Swift pur dans la couche domain** — aucune UI, aucun framework iOS. VS Code + `swift test` en terminal est exactement ce qu'il faut. Tu n'as pas besoin d'Xcode ici.
 
+> **Gate d'entrée iOS — 2 minutes avant de démarrer :**
+> Exécutez ces deux commandes dans le terminal. Si les deux réussissent, vous pouvez commencer Phase 1. Sinon, corrigez avant d'avancer — PROSE ne peut rien si les tests ne se lancent pas.
+> ```bash
+> swift --version          # doit afficher Swift 5.9+
+> cd ecotrack-ios && swift test --filter HabitStreakTests
+> # doit afficher : Test Suite '...' passed
+> ```
+
 - Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
 - `swift` dans le PATH : `swift --version` dans le terminal doit répondre
 - Lancer les tests : `cd ecotrack-ios && swift test`
@@ -145,7 +154,7 @@ ecotrack-ios/
 ```
 
 > **✓ Vérification IDE — 30 secondes avant de démarrer :**
-> Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Shift+I`).
+> Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Alt+I`).
 > Si la fenêtre Chat n'apparaît pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
 > **Participants iOS :** si vous êtes sur Xcode, fermez-le et ouvrez VS Code — les fichiers `.instructions.md` ne sont pas lus par Copilot dans Xcode.
 
@@ -230,6 +239,20 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 # Domain Rules
 (votre contenu ici)
 ```
+
+**Référence rapide — exemples `applyTo` courants :**
+
+| Cas d'usage | Pattern `applyTo` |
+|---|---|
+| Tous les fichiers Kotlin | `**/*.kt` |
+| Tous les fichiers Swift | `**/*.swift` |
+| Domaine Swift uniquement | `**/Sources/EcoTrack/Domain/**/*.swift` |
+| Tests uniquement | `**/*Test.kt,**/*Tests.swift` |
+| Fichiers de build Gradle | `**/*.gradle,**/*.gradle.kts` |
+| Un sous-module spécifique | `feature/payments/**/*` |
+
+> **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
+> **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
 
 > **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot ignore intégralement le fichier. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
 
@@ -327,7 +350,7 @@ It should:
 
 1. Ouvrir le fichier `habit-bdd.prompt.md` dans l'éditeur VS Code
 2. Remplacer `{{HABIT_CATEGORY}}` par `transport` directement dans le fichier (sauvegarde avec `Ctrl+S`)
-3. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+3. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Alt+I`)
 4. Dans la zone de saisie du chat, taper `#` puis sélectionner `habit-bdd.prompt.md` dans la liste
 5. Appuyer sur `Entrée` — Copilot lit le fichier et génère les scénarios
 
@@ -367,6 +390,8 @@ Feature: Transport Habit Tracking
 
 **Du Gherkin aux tests — le pont :** Les scénarios que vous venez de générer ne deviennent pas automatiquement des tests XCTest ou JUnit. Dans ce dojo, le fichier `ecotrack-ios/Tests/EcoTrackTests/Domain/HabitBDDTests.swift` montre comment un scénario Gherkin se traduit en test BDD lisible — avec un DSL privé (`givenACyclingHabitWithNoCompletions()`, `whenCompletingHabit()`, `thenStreakEquals()`). Regardez ce fichier 30 secondes avant Phase 4 : vous verrez votre Gherkin transformé en Swift. La Phase 4 pousse un cran plus loin — du test d'entité (`Habit.completing()`) au test de use case (`CompleteHabitUseCase.execute()`).
 
+> **Limite Copilot — à partager avant d'avancer :** Ce que vous venez de voir (Copilot respectant le vocabulaire domaine et les règles sécurité dans les scénarios Gherkin) est probable — pas garanti. Les LLMs sont non-déterministes : la même instruction peut produire des résultats différents entre deux sessions. Si un scénario viole une règle de `domain.instructions.md`, c'est soit un oubli de contexte (vérifiez le `#`-référencement), soit le non-déterminisme fondamental. La revue humaine de chaque scénario reste indispensable.
+
 ---
 
 ---
@@ -375,7 +400,7 @@ Feature: Transport Habit Tracking
 
 Vérifier avant de continuer (sans ça, la composition Phase 4 échoue silencieusement) :
 
-- [ ] `.github/copilot-instructions.md` existe et commence par `---` (frontmatter présent)
+- [ ] `.github/copilot-instructions.md` existe et **ne commence pas** par `---` (il est global par nature — pas de frontmatter `applyTo`)
 - [ ] `.github/instructions/domain.instructions.md` : `applyTo:` correspond aux chemins réels du repo
 - [ ] `ecotrack-domain.spec.md` existe à la racine et contient une section "Out of Scope"
 - [ ] `.github/prompts/habit-bdd.prompt.md` créé
@@ -464,7 +489,7 @@ Rules:
 - No Android imports. No logging. Pure suspend function.
 ```
 
-**iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Shift+I`) :**
+**iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Alt+I`) :**
 ```
 #domain.instructions.md  #swift-ios.instructions.md  #CompleteHabitUseCaseTests.swift
 ```
@@ -588,6 +613,37 @@ Demander à un binôme d'envoyer sans aucun `#` : *"Implement a use case that lo
 
 ---
 
+### Exercice préliminaire — Détectez la fuite PII (3 min)
+
+> Cet exercice rend la valeur des Safety Boundaries **concrète et irréfutable** avant de créer les fichiers.
+
+Chaque binôme examine ce snippet généré par Copilot sans instructions de sécurité :
+
+```kotlin
+// Android
+fun logHabitCompletion(habit: Habit, user: User) {
+    Log.d("HabitTracker", "User ${user.email} completed ${habit.title} at ${System.currentTimeMillis()}")
+    analytics.track("habit_complete", mapOf("user_id" to user.id, "habit" to habit.description))
+}
+```
+
+```swift
+// iOS
+func logCompletion(habit: Habit, user: User) {
+    print("User \(user.email) completed \(habit.title)")
+    crashlytics.log("habit_complete: \(habit.description) by \(user.id)")
+}
+```
+
+**Questions à poser à voix haute :**
+1. "Combien de violations PII comptez-vous dans ces 4 lignes ?" (email, title, description, user.id — 4 violations)
+2. "Votre `security.instructions.md` aurait-il prévenu chacune de ces violations ?"
+3. "Si non — qu'est-ce qui manque dans vos instructions ?"
+
+**Ce que cet exercice produit :** les participants écrivent leurs propres règles `security.instructions.md` en réponse directe à un problème qu'ils viennent de voir, pas à une règle abstraite.
+
+---
+
 ### Step 5A — Create the security & privacy instructions
 
 **Participants create:** `.github/instructions/security.instructions.md`
@@ -669,6 +725,24 @@ Run a fast round-table. Each pair answers one question:
 | "The junior dev asked Copilot to 'add accessibility'. What went wrong?" | R (scope too vague — no spec, no prompt file) |
 | "We want to add push notifications. How do we start?" | O (new spec → new prompt → BDD → TDD → impl pipeline) |
 | "A security audit found PII in crash logs. How did our PROSE setup fail?" | S (security.instructions.md was missing the crash log scrubbing rule) |
+
+### Démo de régression PROSE — 3 minutes (haute valeur, si temps disponible)
+
+> Cette démo transforme "PROSE semble utile" en "PROSE est mesurable". Elle prend 3 minutes et crée le moment de révélation le plus fort de la session.
+
+**Procédure :**
+1. Ouvrir une nouvelle session Copilot Chat
+2. Charger **uniquement** `#CompleteHabitUseCaseTests.swift` (sans `#domain.instructions.md` ni `#swift-ios.instructions.md`)
+3. Envoyer le même prompt d'implémentation qu'en Phase 4
+4. Afficher le code généré côte à côte avec celui produit en Phase 4
+
+**Ce que vous verrez probablement :**
+- Des noms inventés (`CarbonImpact` au lieu de `CarbonDelta`, `logAction()` au lieu de `completing()`)
+- Des `print()` pour les logs, pas d'OSLog
+- Une importation de framework (`Foundation`, `UIKit`)
+- Une absence de gestion typée des erreurs
+
+**La question à poser :** *"Cette différence, c'est PROSE. Pas Copilot plus intelligent — Copilot mieux contraint."*
 
 ### Artifacts created today
 
