@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.xml,**/*View*.kt,**/*Screen*.kt,**/*Composable*.kt,**/*Card*.kt,**/*Item*.kt,**/*Row*.kt,**/*Button*.kt,**/*.swift,**/*ViewController*.swift"
+applyTo: "**/*.kt,**/*.swift,**/*.xml"
 ---
 
 # EcoTrack Accessibility Instructions (WCAG 2.2 AA)

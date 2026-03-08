@@ -1,5 +1,5 @@
 ---
-applyTo: "src/**/domain/**, **/domain/**, **/*Domain*.kt, **/*Calculator*.kt, **/*Calculator*.swift, **/Sources/EcoTrack/Domain/**/*.swift, **/Tests/EcoTrackTests/Domain/**/*.swift"
+applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/*Calculator*.kt,**/*Calculator*.swift,**/Sources/EcoTrack/Domain/**/*.swift,**/Tests/EcoTrackTests/Domain/**/*.swift"
 ---
 
 # EcoTrack Domain Layer Instructions
@@ -13,7 +13,7 @@ They refine and extend the global instructions in `copilot-instructions.md`.
 |---|---|---|
 | `Habit` | Entity | A user-defined recurring eco behaviour; has an ID and category |
 | `EcoAction` | Value Object | One occurrence of a Habit; immutable; identified by content, not identity |
-| `ActionCategory` | Sealed type | `Transport`, `Food`, `Energy`, `Consumption`, `Waste` |
+| `HabitCategory` | Sealed type (Android) / enum (iOS) | Android : `TRANSPORT`, `FOOD`, `ENERGY`, `WATER`, `WASTE`, `SHOPPING` — iOS : `.transport`, `.food`, `.energy`, `.water`, `.waste`, `.consumption` |
 | `CarbonDelta` | Value Object | Wraps a `Double` (kgCO2e); negative means saving; never null |
 | `FootprintBaseline` | Value Object | Annual CO2e in tCO2e; always positive; default 8.5 for EU average |
 | `UserProfile` | Aggregate Root | Owns a list of Habits and one FootprintBaseline |
@@ -28,16 +28,15 @@ They refine and extend the global instructions in `copilot-instructions.md`.
 **Règle :** `CarbonDelta` peut être négatif (saving). `CarbonFootprint` est toujours ≥ 0.
 Ne pas intervertir ces types — ils ne sont pas substituables.
 
-> **Note :** `ActionCategory` est la source de vérité pour la catégorie d'un habit ou d'une action.
-> `HabitCategory` est un alias de `ActionCategory` — utiliser `ActionCategory` dans tout nouveau code.
-> Ne jamais créer une troisième enum pour les catégories d'action.
+> **Note :** `HabitCategory` est la source de vérité pour la catégorie d'un habit ou d'une action sur les deux plateformes.
+> Ne pas créer d'enum alternatif. Ne pas utiliser de chaînes brutes.
 
 ## Domain Invariants (never violate)
 
 1. `CarbonDelta` is always finite — no `NaN`, no `Infinity`
 2. Dividing by `FootprintBaseline` must guard against zero baseline
 3. An `EcoAction` cannot have a null or blank `name`
-4. `ActionCategory` must be a sealed/enum type — no raw strings in the domain
+4. `HabitCategory` must be a sealed/enum type — no raw strings in the domain
 5. `Habit` identity is a UUID — never an auto-increment integer
 
 ## Style Rules
