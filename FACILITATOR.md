@@ -91,6 +91,7 @@ not just first-generation code quality."
 2. Is the file saved? (Copilot reads from disk)
 3. Is Copilot Chat open with the file in context? (drag file into chat if needed)
 4. Is the file in `.github/instructions/` (not `/instructions/` at root)?
+5. Le fichier actuellement ouvert dans l'éditeur correspond-il au glob `applyTo` ? Un fichier `domain.instructions.md` avec `applyTo: "**/*.swift"` ne s'appliquera pas si l'éditeur actif est un fichier `.md` ou `.kt`. Ouvrir un fichier Swift (ou Kotlin) avant de tester.
 
 ### "Our BDD scenarios are too vague / too implementation-specific"
 

@@ -7,7 +7,7 @@ description: "Generate Gherkin BDD scenarios for a given EcoTrack habit category
 > - [ ] J'ai remplacé `{{HABIT_CATEGORY}}` ci-dessous par une valeur concrète (`transport`, `food`, `energy`, `consumption` ou `waste`)
 > - [ ] J'ai sauvegardé le fichier (`Ctrl+S` / `Cmd+S`)
 > - [ ] Le fichier `domain.instructions.md` est bien dans `.github/instructions/`
-> - [ ] Le bloc `---mode: "chat"---` est présent en première ligne de ce fichier
+> - [ ] Le frontmatter `mode: "chat"` est présent (lignes 1–3 de ce fichier : `---` / `mode: "chat"` / `---`)
 >
 > ⚠️ Copilot ne substitue PAS `{{variables}}` automatiquement. Si oublié, le Gherkin contiendra `{{HABIT_CATEGORY}}` tel quel — inutilisable.
 

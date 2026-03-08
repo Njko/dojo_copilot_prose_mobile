@@ -367,6 +367,8 @@ It should:
 
 > **Note — références anticipées :** Ce prompt file référence `security.instructions.md` et `accessibility.instructions.md` qui seront créés en **Phase 5**. Ajoutez ces références dès maintenant — Copilot les ignorera gracieusement si les fichiers sont absents, et les intégrera automatiquement dès qu'ils existeront. C'est la *Progressive Disclosure* en action : on structure le contexte en avance, on le remplit juste-à-temps.
 
+> **Note — les liens Markdown ne sont PAS des injections automatiques :** Les lignes comme `[ecotrack-domain.spec.md](../../ecotrack-domain.spec.md)` dans ce prompt sont du Markdown informatif. Copilot **ne charge pas** le contenu de ces fichiers automatiquement. Pour injecter le contenu d'un fichier dans Copilot Chat, utilisez `#` dans la zone de saisie (ex. `#ecotrack-domain.spec.md`) ou faites glisser le fichier dans la fenêtre Chat. Les liens Markdown servent de documentation et de rappel au participant — pas d'injection de contexte.
+
 ### Step 3B — Run the BDD prompt (live generation)
 
 **Comment exécuter un fichier `.prompt.md` dans Copilot Chat — procédure exacte :**
@@ -751,6 +753,8 @@ Flag violations with: // ECO: <reason>
 ```
 
 **The Safety Boundaries insight:** These three files are guardrails. Every time Copilot generates code touching these file patterns, the instructions are in context. Copilot cannot forget the accessibility rule because the rule travels with the file type — not with the developer's memory.
+
+> **Limite de tokens — à communiquer aux participants :** Copilot charge l'ensemble des fichiers `.instructions.md` correspondant au fichier ouvert, mais la fenêtre de contexte d'instructions est limitée à environ **4 000 tokens**. Si la somme de vos fichiers d'instructions dépasse cette limite, Copilot tronquera silencieusement les derniers fichiers chargés. Symptôme : les règles de sécurité ou d'éco-conception semblent ignorées alors que les fichiers existent. Remède : garder chaque fichier `.instructions.md` concis (< 500 tokens / < 300 mots) et utiliser les fichiers `.prompt.md` pour le contexte ponctuel volumieux.
 
 > **Limite importante à communiquer :** Ces règles *augmentent la probabilité* que Copilot les respecte — elles ne le *garantissent pas*. Copilot peut générer du code qui viole une règle si le contexte est incomplet ou si la rule est ambiguë. La revue humaine reste indispensable. PROSE est un shift-left, pas une assurance.
 
