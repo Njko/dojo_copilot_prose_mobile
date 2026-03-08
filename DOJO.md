@@ -129,9 +129,11 @@ code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les c
 > **Bonne nouvelle :** Dans ce dojo, tu ne compiles pas une app, tu ne lances pas de simulateur. Tu fais uniquement du **Swift pur dans la couche domain** — aucune UI, aucun framework iOS. VS Code + `swift test` en terminal est exactement ce qu'il faut. Tu n'as pas besoin d'Xcode ici.
 
 > **Gate d'entrée iOS — 2 minutes avant de démarrer :**
+> Prérequis : **macOS 14 (Sonoma) ou supérieur** — `Package.swift` déclare `.macOS(.v14)`. Sur macOS 13, `swift test` échoue à la résolution des platforms, pas à la compilation.
 > Exécutez ces deux commandes dans le terminal. Si les deux réussissent, vous pouvez commencer Phase 1. Sinon, corrigez avant d'avancer — PROSE ne peut rien si les tests ne se lancent pas.
 > ```bash
-> swift --version          # doit afficher Swift 5.9+
+> sw_vers -productVersion   # doit afficher 14.x ou supérieur
+> swift --version           # doit afficher Swift 5.9+
 > cd ecotrack-ios && swift test --filter HabitStreakTests
 > # doit afficher : Test Suite '...' passed
 > ```
@@ -180,7 +182,8 @@ ecotrack-ios/
 
 > **✓ Vérification IDE — 30 secondes avant de démarrer :**
 > Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Alt+I`).
-> Si la fenêtre Chat n'apparaît pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
+> **Si le raccourci ne fonctionne pas :** ouvrir via `Cmd+Shift+P` (macOS) ou `Ctrl+Shift+P` (Windows/Linux) → taper "GitHub Copilot: Open Chat" → Entrée. Alternatif : cliquer l'icône Copilot dans la barre latérale gauche.
+> Si la fenêtre Chat n'apparaît toujours pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
 > **Participants iOS :** si vous êtes sur Xcode, fermez-le et ouvrez VS Code — les fichiers `.instructions.md` ne sont pas lus par Copilot dans Xcode.
 
 ### Le pipeline que vous allez construire
@@ -482,7 +485,7 @@ Les noms Given/When/Then du Gherkin deviennent des méthodes de test. Le scénar
 
 **iOS :**
 1. Ouvrir `ecotrack-ios/Sources/EcoTrack/Domain/UseCases/CompleteHabitUseCase.swift`
-2. Montrer la ligne : `throw HabitError.habitNotFound(habitID) // Remove this line when implementing`
+2. Montrer la ligne : `throw HabitError.habitNotFound(habitID) // TODO: Replace this stub with real implementation (steps 1–5 above)`
 3. (Optionnel, si l'extension `sswg.swift-lang` est installée) : ouvrir le panneau Testing — les 8 tests sont affichés en rouge sans commande terminal
 4. Dire : *"Le rouge est propre — pas d'erreur de compilation, juste un throw intentionnel. Copilot va le remplacer."*
 
