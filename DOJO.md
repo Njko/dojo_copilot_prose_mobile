@@ -103,6 +103,9 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 
 **Message pédagogique :** *"Ce fichier vient de changer le comportement de Copilot. C'est la lettre E de PROSE — Explicit Hierarchy. C'est ce qu'on va construire ensemble."*
 
+> **Pendant la démo — consigne participants :**
+> Fermez votre IDE. Regardez le projecteur. Votre seule mission ces 3 minutes : observer ce qui change dans la réponse de Copilot entre "avant" et "après" le fichier d'instructions. N'ouvrez VS Code qu'au signal de départ de Phase 1.
+
 **Pour référencer un fichier existant dans Copilot Chat (syntaxe exacte) :**
 - Taper `#` dans la zone de chat → une liste de fichiers apparaît
 - Sélectionner le fichier ou taper son nom
@@ -134,8 +137,8 @@ code .   # Ouvrir VS Code sur la RACINE du monorepo — important pour que les c
 > ```bash
 > sw_vers -productVersion   # doit afficher 14.x ou supérieur
 > swift --version           # doit afficher Swift 5.9+
-> cd ecotrack-ios && swift test --filter HabitStreakTests
-> # doit afficher : Test Suite '...' passed
+> cd ecotrack-ios && swift test --filter HabitCompletionBDDTests
+> # doit afficher : Test Suite 'HabitCompletionBDDTests' passed at ...
 > ```
 >
 > **Si `swift --version` échoue** (`command not found`) — récupération du PATH :
@@ -278,6 +281,8 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 | Tests uniquement | `**/*Test.kt,**/*Tests.swift` |
 | Fichiers de build Gradle | `**/*.gradle,**/*.gradle.kts` |
 | Un sous-module spécifique | `feature/payments/**/*` |
+| **Domain Android — ce monorepo** | `ecotrack-android/app/src/**/domain/**` |
+| **Domain iOS — ce monorepo** | `ecotrack-ios/Sources/EcoTrack/Domain/**/*.swift` |
 
 > **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
 > **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
@@ -811,10 +816,14 @@ By the end of the dojo, each pair has produced:
     habit-bdd.prompt.md                ← P: Just-in-time BDD context
     carbon-calculator.prompt.md        ← O: Composition pipeline step
 ecotrack-domain.spec.md               ← R: Bounded scope contract
-src/domain/
-  CarbonCalculator.kt / .swift        ← O: Composed implementation
-  CarbonCalculatorTest.kt / .swift    ← O: TDD red→green cycle
 ```
+
+> **Bonus Round uniquement** (si temps disponible) :
+> ```
+> src/domain/
+>   CarbonCalculator.kt / .swift      ← O: exercice post-session
+>   CarbonCalculatorTest.kt / .swift  ← O: exercice post-session
+> ```
 
 ### Learning outcomes by constraint
 

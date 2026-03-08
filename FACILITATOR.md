@@ -134,6 +134,14 @@ Expliquer : "Un test modifié pour passer n'est plus un test. On a supprimé le 
 Demander au binôme de relire le test original et d'identifier ce que l'implémentation doit réellement faire.
 Cette situation est un enseignement précieux : les tests sont des spécifications vivantes, pas des obstacles à contourner.
 
+### "Duplicate class error après avoir créé le vrai fichier use case (Android)"
+
+**Ce qui s'est passé :** Le stub `LogHabitCompletionUseCase` dans le fichier de test n'a pas été supprimé après avoir créé `domain/usecase/LogHabitCompletionUseCase.kt`. Le compilateur Kotlin voit deux définitions de la même classe dans le même classpath.
+
+**Redirect :** "Normal — deux définitions de la même classe. Ouvre le fichier de test, descends en bas, supprime tout ce qui est sous le commentaire `// Stubs — participants delete these`. Relance `./gradlew compileDebugKotlin`."
+
+Le message d'erreur exact : `error: duplicate class com.ecotrack.domain.usecase.LogHabitCompletionUseCase`.
+
 ### "Le glossaire dit Fake mais le test Android utilise Mockito ?"
 
 **C'est intentionnel — les deux plateformes font des choix différents.**
