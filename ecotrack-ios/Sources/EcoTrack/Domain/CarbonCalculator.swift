@@ -7,24 +7,6 @@
 //
 // Emission factors source: ADEME 2024 (kgCO2e/km)
 
-// MARK: - ActionCategory
-
-/// Categories of eco-friendly actions tracked by EcoTrack.
-///
-/// Used by `CarbonInput` to route the calculation logic in `CarbonCalculator`.
-public enum ActionCategory: String, CaseIterable, Sendable {
-    /// Transport mode actions (cycling, car, bus, train, flight, etc.)
-    case transport
-    /// Food-related actions (plant-based meals, reduced meat, etc.)
-    case food
-    /// Energy-related actions (renewable energy, reducing consumption, etc.)
-    case energy
-    /// Consumption-related actions (reusable items, second-hand goods, etc.)
-    case consumption
-    /// Waste-related actions (recycling, composting, etc.)
-    case waste
-}
-
 // MARK: - CarbonDelta
 
 /// Immutable value object representing the CO₂ equivalent delta produced by an action.
@@ -90,7 +72,7 @@ public struct FootprintBaseline: Hashable, Sendable {
 public struct CarbonInput: Hashable, Sendable {
 
     /// The category of the eco action.
-    public let category: ActionCategory
+    public let category: HabitCategory
 
     /// Human-readable name for the action (e.g. "Cycling commute").
     public let name: String
@@ -103,7 +85,7 @@ public struct CarbonInput: Hashable, Sendable {
     ///   - category: The action category.
     ///   - name: The action name.
     ///   - distanceKm: Distance in km (required for `.transport`).
-    public init(category: ActionCategory, name: String, distanceKm: Double? = nil) {
+    public init(category: HabitCategory, name: String, distanceKm: Double? = nil) {
         self.category = category
         self.name = name
         self.distanceKm = distanceKm
@@ -169,7 +151,7 @@ public enum CarbonCalculator {
         switch input.category {
         case .transport:
             return try calculateTransport(input)
-        case .food, .energy, .consumption, .waste:
+        case .food, .energy, .consumption, .waste, .water:
             // No distance-based model yet; delta defaults to zero.
             return .zero
         }

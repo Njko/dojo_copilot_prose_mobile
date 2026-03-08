@@ -6,7 +6,7 @@
 // by implementing CompleteHabitUseCase.execute(habitID:on:note:)
 //
 // PROSE: Reduced Scope - Focus only on CompleteHabitUseCase for this exercise.
-// Run tests with: Cmd+U or `xcodebuild test -scheme EcoTrack`
+// Run tests with: `swift test --filter CompleteHabitUseCaseTests` (VS Code terminal)
 //
 // COPILOT TIP: Open this file alongside CompleteHabitUseCase.swift.
 // Ask Copilot: "Make these tests pass by implementing the execute method"

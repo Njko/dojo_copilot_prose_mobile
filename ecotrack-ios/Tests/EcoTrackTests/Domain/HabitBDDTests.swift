@@ -285,12 +285,10 @@ final class CarbonFootprintBDDTests: XCTestCase {
             )
         )
 
-        // When: complete on 4 different days
+        // When: complete on 4 different days (all in the past to avoid conflicts)
         let calendar = Calendar.current
         let today = Date()
-        for daysAgo in (0..<4).reversed() {
-            // Skip today on iterations > 0 to avoid duplicate
-            if daysAgo == 0 && habit.completions.count > 0 { continue }
+        for daysAgo in 1...4 {
             let date = calendar.date(byAdding: .day, value: -daysAgo, to: today)!
             habit = try habit.completing(on: date)
         }

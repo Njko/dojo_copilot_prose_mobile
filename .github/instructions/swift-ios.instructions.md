@@ -138,7 +138,7 @@ final class HabitRecord {
             title: title,
             category: HabitCategory(rawValue: categoryRawValue) ?? .consumption,
             targetFrequency: .daily,
-            ecoImpact: .placeholder
+            ecoImpact: EcoImpact(co2SavedPerCompletion: CarbonFootprint(kilograms: 0), description: "")
         )
     }
 }
@@ -249,7 +249,7 @@ final class <TypeName>Tests: XCTestCase {
 
     // MARK: Lifecycle
     override func setUp() async throws {
-        try await super.setUp()
+        await super.setUp()
         mockRepository = Mock<Repository>()
         sut = <TypeUnderTest>(repository: mockRepository)
     }
@@ -257,7 +257,7 @@ final class <TypeName>Tests: XCTestCase {
     override func tearDown() async throws {
         sut = nil
         mockRepository = nil
-        try await super.tearDown()
+        await super.tearDown()
     }
 
     // MARK: Tests
