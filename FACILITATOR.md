@@ -6,18 +6,27 @@
 
 ## Before the Session (T-30 min)
 
-### Environment checks
+### Environment checks — tâches solo (avant l'arrivée des participants)
 
 - [ ] GitHub Copilot extension installed and authenticated in VS Code / JetBrains
 - [ ] Copilot Chat enabled (not just completions)
-- [ ] Repo cloned on all participant machines — only `.git` and `README.md` present at start
+- [ ] **Licences Copilot actives** : sur chaque machine participante, vérifier sur `github.com/settings/copilot` que la licence est allouée ET que l'extension est authentifiée. L'extension peut être installée sans être authentifiée — Copilot refusera de fonctionner silencieusement.
+- [ ] Repo cloned on all participant machines — branche `dojo-<date>` créée
 - [ ] Projector / screen share ready for "failure demo" in Phase 4
 - [ ] Timer visible to participants (use a projected countdown or browser tab)
 - [ ] Platform split: count Android vs iOS pairs — balance if possible
 - [ ] **Glossaire imprimé ou projeté** — voir section "Glossaire" dans `DOJO.md`. Distribuer avant de commencer ou afficher pendant la Phase 0. Réduit de ~70% les interruptions pour des définitions de termes.
 - [ ] **Vérifier les frontmatters PROSE** : s'assurer que les fichiers `.instructions.md` ont leur bloc `---` YAML.
   Si le script `scripts/validate-prose.sh` existe, le lancer. Sinon, vérifier manuellement les 3 premières lignes de chaque fichier dans `.github/instructions/`.
-  Un fichier sans frontmatter est **silencieusement ignoré** par Copilot — source de 10+ minutes de debugging.
+  Un fichier sans frontmatter n'est pas activé automatiquement par Copilot — source de 10+ minutes de debugging.
+- [ ] **Tester la démo Phase 0 seul** — s'assurer que le contraste "avant/après" est visible. Si Copilot génère quelque chose de propre sans instructions (modèles récents 2025-2026), préparer le pivot "maintenabilité" (voir section "Composition Failure Demo").
+
+### Checklist T-5 — tâches avec les participants (à l'arrivée)
+
+- [ ] Chaque participant lève la main quand Copilot Chat est ouvert (validation licences live)
+- [ ] iOS uniquement : `swift --version` dans le terminal — résultat visible
+- [ ] Android uniquement : `cd ecotrack-android && ./gradlew :app:testDebugUnitTest --tests "com.ecotrack.domain.CarbonCalculatorTest"` — BUILD SUCCESSFUL
+- [ ] Distribuer ou projeter le Glossaire `DOJO.md` avant Phase 0
 
 ### Préparer les participants selon leur profil
 
@@ -49,6 +58,14 @@
 - Pour iOS : vérifier Swift dans le PATH avant de commencer (`swift --version`)
 - Leur dire explicitement que VS Code est utilisé ici pour les features Copilot spécifiques (`.instructions.md`, `.prompt.md`) — pas par préférence générale
 
+### Coordination avec l'expert Copilot en renfort (si présent)
+
+Si un expert Copilot est présent pour répondre aux questions techniques :
+
+- **Rôle par défaut :** L'expert intervient sur les paires en binôme silencieux pendant que le facilitateur anime. Il ne prend pas la parole devant le groupe sans signal du facilitateur.
+- **Signal de prise de parole :** Le facilitateur dit *"[prénom], tu as quelque chose à ajouter sur ça ?"* — jamais d'intervention spontanée de l'expert pendant une explication du facilitateur.
+- **Protocole de clôture synchrone :** À 53:00 pile, tout le monde s'arrête où il est. Le facilitateur annonce la retro collective — le niveau d'avancement de chaque paire est une donnée pédagogique, pas un échec.
+
 ### Starter kit backup
 
 If a pair falls behind, they can pull individual files from the `solutions/` branch:
@@ -61,6 +78,12 @@ Use sparingly — struggling is learning.
 
 ## Timing Safety Valves
 
+**Triggers de déclenchement — activer la coupe si :**
+- À **20:00** tu n'es pas encore en Phase 2 → couper Phase 3 Step B (live BDD run)
+- À **28:00** tu n'es pas encore en Phase 3 → couper Phase 4 Step B (implementation generation)
+- À **40:00** tu n'es pas encore en Phase 4 → couper eco-conception + raccourcir la retro
+- À **50:00** tu n'es pas encore en Phase 5 → retro de 3 questions uniquement, pas de 1-2-4-All
+
 If running behind schedule, apply these cuts in order:
 
 | Cut | Time saved | What is lost |
@@ -71,6 +94,8 @@ If running behind schedule, apply these cuts in order:
 | Skip eco-conception instructions file entirely | 3 min | Eco meta-lesson (pick up in debrief) |
 
 **Do not cut:** Phase 1 (hierarchy) or Phase 5 (safety boundaries) — these are the core PROSE insights.
+
+**Si un binôme finit Phase 4 avant l'heure :** ne pas les envoyer sur le Bonus Round (désynchroniserait le groupe pour la retro). Leur donner à la place : *"Préparez 3 arguments pour la retro : sans PROSE, quel bug serait arrivé en prod dans 6 mois ?"*
 
 > **Phase 5 — Révélation guidée :** avant de créer les fichiers de sécurité/accessibilité/éco, posez les questions de révélation (voir `DOJO.md` Phase 5 intro). Les participants qui se reconnaissent dans les anti-patterns comprennent les règles comme des *corrections*, pas comme des contraintes. Même si vous manquez de temps, gardez ces 2 minutes — elles ont plus d'impact pédagogique que la création mécanique des fichiers.
 
@@ -161,6 +186,22 @@ Lesson: Safety boundaries only work if the file is in context. PROSE helps ensur
 
 ## Android vs iOS Pair Dynamics
 
+### Rituel d'ouverture pour groupe senior (< 2 min)
+
+Avant Phase 0, dire explicitement : *"Dans ce dojo, l'expertise mobile que vous avez accumulée est un avantage — vous allez voir comment PROSE structure ce que vous faites déjà instinctivement. La configuration des fichiers `.instructions.md` est nouvelle pour tout le monde ici. On explore ensemble."*
+
+Ce rituel neutralise la compétence-anxiety chez les seniors : il autorise la curiosité sans risque de regard des pairs.
+
+### Gestion de l'asymétrie d'expertise Copilot dans les paires
+
+Si un participant utilise déjà Copilot Chat (Archétype 2) et son partenaire est novice (Archétype 4) :
+
+**Règle des 5 minutes :** Si tu observes qu'un participant drive le clavier depuis plus de 5 minutes sans que son partenaire touche le clavier — intervenir : *"Est-ce que tu peux expliquer à voix haute ce que tu fais ? Je veux m'assurer que tout le monde voit la même chose."*
+
+**Rotation forcée à Phase 4A :** Demander explicitement au participant le moins à l'aise avec Copilot de faire la manipulation : *"C'est toi qui tapes le `#` dans Chat — ton partenaire te guide."*
+
+**Si un participant avancé saute des phases** (ex: génère les tests directement depuis la spec sans passer par BDD) : ne pas stopper l'élan, transformer en insight : *"Tu viens de faire P + O en un prompt. Est-ce que ça marche aussi quand c'est un nouveau membre d'équipe qui repart de zéro ?"*
+
 ### Mixed pairs (recommended)
 Instruct mixed pairs to write specs and prompts in platform-agnostic language,
 then each developer translates to their native platform in Phases 3–4.
@@ -203,15 +244,27 @@ the same separation-of-concerns principle without requiring KMP setup time.
 **Then show** the result from the PROSE pipeline (spec → BDD → tests → implementation).
 The contrast lands without needing to say anything more.
 
+**Si la démo ne produit pas de contraste visible** (Copilot 2025+ peut générer quelque chose de propre sans instructions) : pivoter vers l'argument de maintenabilité : *"Super — est-ce que ce comportement est garanti pour tous les développeurs de l'équipe, sur toutes les sessions, pour tous les fichiers ? Ou juste pour vous, aujourd'hui, dans ce chat ?"* Le point de PROSE n'est pas que Copilot fait mieux avec des instructions — c'est que le comportement devient **reproductible et versionnable**.
+
+**Plan B si connexion Copilot instable :** avoir 2 captures d'écran prêtes (avant/après `copilot-instructions.md`) dans les slides ou dans un fichier local. La démo live est idéale mais pas obligatoire.
+
 ---
 
 ## Retro Facilitation Script
 
-Use a quick "1-2-4-All" format for the 7-minute retro:
+**Format adapté pour groupe de 4 (plus fiable que 1-2-4-All à cette taille) :**
 
-1. **1 min — Individual silent reflection:** "Write one thing PROSE prevents that you've experienced as a real problem."
-2. **2 min — Pairs:** Share and pick the most resonant one.
-3. **4 min — All:** 3–4 pairs share. Facilitator maps to PROSE letters on the board.
+1. **2 min — Réflexion silencieuse individuelle :** Chacun écrit ses réponses aux 3 questions de DOJO.md (pad partagé, post-it, ou mémo). Pas de discussion.
+2. **3 min — Tour de table rapide :** Chaque participant partage sa réponse à la **question 3 uniquement** ("quelle pratique tu introduis lundi"). Le facilitateur mappe sur les lettres PROSE au tableau.
+3. **2 min — Question bonus ou fermeture :** Poser la question des 3 freelances si le groupe est engagé, ou fermer directement sur les ressources post-dojo.
+
+> **Pourquoi question 3 en priorité :** c'est la plus actionnable et la plus mémorisable. Les questions 1 et 2 peuvent être traitées en discussion informelle post-session.
+
+**Livrable de sortie — artefact tangible (30 secondes) :**
+Avant de fermer, demander à chaque participant d'écrire sur un post-it ou dans le pad :
+> *"La règle PROSE que j'introduis dans mon repo cette semaine : [une ligne]"*
+
+Ce n'est pas une évaluation — c'est un engagement public minimal. Photographier les post-its si en présentiel.
 
 **Target landing:** Participants leave with a personal story of a real problem PROSE would have prevented.
 That story is what they'll share with their team on Monday.

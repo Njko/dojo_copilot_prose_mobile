@@ -62,11 +62,10 @@ Crashlytics.crashlytics().setCustomValue(habits.count, forKey: "habit_count") //
 - All HTTP clients must use certificate pinning:
   - Android (OkHttp): reference `CertificatePinner` — flag any `OkHttpClient.Builder()` without it
   - iOS (URLSession): reference `URLSessionDelegate` with pinning — flag any direct use of `URLSession.shared` or `OkHttpClient()` without a custom configuration — always use a preconfigured client with certificate pinning policy
-  - > ⚠️ **Note opérationnelle :** le certificate pinning peut provoquer un outage si le certificat expire sans rotation préparée. Ne l'activer qu'avec une politique de rotation documentée (runbook).
 - All API calls must be HTTPS — flag any `http://` URL literal
 
 ## Offline Fallback
 
 - Carbon factor lookups must work offline using bundled constants from `domain.instructions.md`
-- No core feature (log habit, view footprint) may be unavailable without network
+- All core features (log habit, view footprint) must remain fully functional offline
 - Network calls are for sync only, never for primary computation
