@@ -1,5 +1,5 @@
 ---
-applyTo: "src/**/domain/**, **/domain/**, **/*Domain*.kt, **/*Domain*.swift, **/*Calculator*.kt, **/*Calculator*.swift"
+applyTo: "src/**/domain/**, **/domain/**, **/*Domain*.kt, **/*Calculator*.kt, **/*Calculator*.swift, **/Sources/EcoTrack/Domain/**/*.swift, **/Tests/EcoTrackTests/Domain/**/*.swift"
 ---
 
 # EcoTrack Domain Layer Instructions
