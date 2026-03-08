@@ -93,10 +93,11 @@ Facilitator sets the scene. Participants open the repo. Nothing is there except 
 **Script :**
 
 1. Ouvrir VS Code avec le repo cloné
-2. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+2. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Alt+I`)
 3. Taper dans le chat : *"Write a function that calculates carbon saved."*
 4. Montrer la réponse : noms génériques, pas de langage domaine, probablement un réseau ou une DB
 5. Créer en live un fichier `.github/copilot-instructions.md` vide avec une seule règle : *"Use the term CarbonDelta for any carbon calculation result."*
+5b. **Fermer et rouvrir le panneau Copilot Chat** (important — le contexte de la session précédente doit être effacé pour que la démo soit probante)
 6. Retaper la même question dans le chat
 7. Montrer que le terme `CarbonDelta` apparaît maintenant dans la réponse
 
@@ -124,6 +125,14 @@ cd ecotrack
 
 > **Bonne nouvelle :** Dans ce dojo, tu ne compiles pas une app, tu ne lances pas de simulateur. Tu fais uniquement du **Swift pur dans la couche domain** — aucune UI, aucun framework iOS. VS Code + `swift test` en terminal est exactement ce qu'il faut. Tu n'as pas besoin d'Xcode ici.
 
+> **Gate d'entrée iOS — 2 minutes avant de démarrer :**
+> Exécutez ces deux commandes dans le terminal. Si les deux réussissent, vous pouvez commencer Phase 1. Sinon, corrigez avant d'avancer — PROSE ne peut rien si les tests ne se lancent pas.
+> ```bash
+> swift --version          # doit afficher Swift 5.9+
+> cd ecotrack-ios && swift test --filter HabitStreakTests
+> # doit afficher : Test Suite '...' passed
+> ```
+
 - Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
 - `swift` dans le PATH : `swift --version` dans le terminal doit répondre
 - Lancer les tests : `cd ecotrack-ios && swift test`
@@ -145,7 +154,7 @@ ecotrack-ios/
 ```
 
 > **✓ Vérification IDE — 30 secondes avant de démarrer :**
-> Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Shift+I`).
+> Chaque participant lève la main quand **Copilot Chat est ouvert** (`Ctrl+Alt+I` / `Cmd+Alt+I`).
 > Si la fenêtre Chat n'apparaît pas : extension GitHub Copilot manquante → `Cmd+Shift+P` → "Extensions: Install Extensions" → "GitHub Copilot".
 > **Participants iOS :** si vous êtes sur Xcode, fermez-le et ouvrez VS Code — les fichiers `.instructions.md` ne sont pas lus par Copilot dans Xcode.
 
@@ -230,6 +239,20 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 # Domain Rules
 (votre contenu ici)
 ```
+
+**Référence rapide — exemples `applyTo` courants :**
+
+| Cas d'usage | Pattern `applyTo` |
+|---|---|
+| Tous les fichiers Kotlin | `**/*.kt` |
+| Tous les fichiers Swift | `**/*.swift` |
+| Domaine Swift uniquement | `**/Sources/EcoTrack/Domain/**/*.swift` |
+| Tests uniquement | `**/*Test.kt,**/*Tests.swift` |
+| Fichiers de build Gradle | `**/*.gradle,**/*.gradle.kts` |
+| Un sous-module spécifique | `feature/payments/**/*` |
+
+> **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
+> **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
 
 > **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot ignore intégralement le fichier. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
 
@@ -327,7 +350,7 @@ It should:
 
 1. Ouvrir le fichier `habit-bdd.prompt.md` dans l'éditeur VS Code
 2. Remplacer `{{HABIT_CATEGORY}}` par `transport` directement dans le fichier (sauvegarde avec `Ctrl+S`)
-3. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Shift+I`)
+3. Ouvrir Copilot Chat (`Ctrl+Alt+I` / `Cmd+Alt+I`)
 4. Dans la zone de saisie du chat, taper `#` puis sélectionner `habit-bdd.prompt.md` dans la liste
 5. Appuyer sur `Entrée` — Copilot lit le fichier et génère les scénarios
 
@@ -375,7 +398,7 @@ Feature: Transport Habit Tracking
 
 Vérifier avant de continuer (sans ça, la composition Phase 4 échoue silencieusement) :
 
-- [ ] `.github/copilot-instructions.md` existe et commence par `---` (frontmatter présent)
+- [ ] `.github/copilot-instructions.md` existe et **ne commence pas** par `---` (il est global par nature — pas de frontmatter `applyTo`)
 - [ ] `.github/instructions/domain.instructions.md` : `applyTo:` correspond aux chemins réels du repo
 - [ ] `ecotrack-domain.spec.md` existe à la racine et contient une section "Out of Scope"
 - [ ] `.github/prompts/habit-bdd.prompt.md` créé
@@ -464,7 +487,7 @@ Rules:
 - No Android imports. No logging. Pure suspend function.
 ```
 
-**iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Shift+I`) :**
+**iOS — charger ces 3 artefacts dans Copilot Chat (`Cmd+Alt+I`) :**
 ```
 #domain.instructions.md  #swift-ios.instructions.md  #CompleteHabitUseCaseTests.swift
 ```
