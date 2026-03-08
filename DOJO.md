@@ -390,6 +390,8 @@ Feature: Transport Habit Tracking
 
 **Du Gherkin aux tests — le pont :** Les scénarios que vous venez de générer ne deviennent pas automatiquement des tests XCTest ou JUnit. Dans ce dojo, le fichier `ecotrack-ios/Tests/EcoTrackTests/Domain/HabitBDDTests.swift` montre comment un scénario Gherkin se traduit en test BDD lisible — avec un DSL privé (`givenACyclingHabitWithNoCompletions()`, `whenCompletingHabit()`, `thenStreakEquals()`). Regardez ce fichier 30 secondes avant Phase 4 : vous verrez votre Gherkin transformé en Swift. La Phase 4 pousse un cran plus loin — du test d'entité (`Habit.completing()`) au test de use case (`CompleteHabitUseCase.execute()`).
 
+> **Limite Copilot — à partager avant d'avancer :** Ce que vous venez de voir (Copilot respectant le vocabulaire domaine et les règles sécurité dans les scénarios Gherkin) est probable — pas garanti. Les LLMs sont non-déterministes : la même instruction peut produire des résultats différents entre deux sessions. Si un scénario viole une règle de `domain.instructions.md`, c'est soit un oubli de contexte (vérifiez le `#`-référencement), soit le non-déterminisme fondamental. La revue humaine de chaque scénario reste indispensable.
+
 ---
 
 ---
@@ -611,6 +613,37 @@ Demander à un binôme d'envoyer sans aucun `#` : *"Implement a use case that lo
 
 ---
 
+### Exercice préliminaire — Détectez la fuite PII (3 min)
+
+> Cet exercice rend la valeur des Safety Boundaries **concrète et irréfutable** avant de créer les fichiers.
+
+Chaque binôme examine ce snippet généré par Copilot sans instructions de sécurité :
+
+```kotlin
+// Android
+fun logHabitCompletion(habit: Habit, user: User) {
+    Log.d("HabitTracker", "User ${user.email} completed ${habit.title} at ${System.currentTimeMillis()}")
+    analytics.track("habit_complete", mapOf("user_id" to user.id, "habit" to habit.description))
+}
+```
+
+```swift
+// iOS
+func logCompletion(habit: Habit, user: User) {
+    print("User \(user.email) completed \(habit.title)")
+    crashlytics.log("habit_complete: \(habit.description) by \(user.id)")
+}
+```
+
+**Questions à poser à voix haute :**
+1. "Combien de violations PII comptez-vous dans ces 4 lignes ?" (email, title, description, user.id — 4 violations)
+2. "Votre `security.instructions.md` aurait-il prévenu chacune de ces violations ?"
+3. "Si non — qu'est-ce qui manque dans vos instructions ?"
+
+**Ce que cet exercice produit :** les participants écrivent leurs propres règles `security.instructions.md` en réponse directe à un problème qu'ils viennent de voir, pas à une règle abstraite.
+
+---
+
 ### Step 5A — Create the security & privacy instructions
 
 **Participants create:** `.github/instructions/security.instructions.md`
@@ -692,6 +725,24 @@ Run a fast round-table. Each pair answers one question:
 | "The junior dev asked Copilot to 'add accessibility'. What went wrong?" | R (scope too vague — no spec, no prompt file) |
 | "We want to add push notifications. How do we start?" | O (new spec → new prompt → BDD → TDD → impl pipeline) |
 | "A security audit found PII in crash logs. How did our PROSE setup fail?" | S (security.instructions.md was missing the crash log scrubbing rule) |
+
+### Démo de régression PROSE — 3 minutes (haute valeur, si temps disponible)
+
+> Cette démo transforme "PROSE semble utile" en "PROSE est mesurable". Elle prend 3 minutes et crée le moment de révélation le plus fort de la session.
+
+**Procédure :**
+1. Ouvrir une nouvelle session Copilot Chat
+2. Charger **uniquement** `#CompleteHabitUseCaseTests.swift` (sans `#domain.instructions.md` ni `#swift-ios.instructions.md`)
+3. Envoyer le même prompt d'implémentation qu'en Phase 4
+4. Afficher le code généré côte à côte avec celui produit en Phase 4
+
+**Ce que vous verrez probablement :**
+- Des noms inventés (`CarbonImpact` au lieu de `CarbonDelta`, `logAction()` au lieu de `completing()`)
+- Des `print()` pour les logs, pas d'OSLog
+- Une importation de framework (`Foundation`, `UIKit`)
+- Une absence de gestion typée des erreurs
+
+**La question à poser :** *"Cette différence, c'est PROSE. Pas Copilot plus intelligent — Copilot mieux contraint."*
 
 ### Artifacts created today
 

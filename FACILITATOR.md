@@ -26,6 +26,29 @@
 - Montrer visuellement le cycle TDD rouge/vert **avant** Phase 4, pas pendant
 - Pointer explicitement vers les guides d'outillage **avant** Phase 4 : [`ecotrack-android/docs/junit5-setup.md`](../ecotrack-android/docs/junit5-setup.md) et [`ecotrack-ios/docs/run-tests-vscode.md`](../ecotrack-ios/docs/run-tests-vscode.md)
 
+### Adapter la facilitation au profil — 4 archétypes
+
+**Archétype 1 : Novice absolu (jamais utilisé Copilot, jamais VS Code)**
+- Prévoir 10 min de prise en main VS Code avant Phase 0 (panneau Explorer, terminal intégré, Activity Bar)
+- Jumeler avec un profil intermédiaire pour les Phases 1-2
+- Objectif réduit : comprendre E (Explicit Hierarchy) et S (Safety Boundaries) — le reste est bonus
+
+**Archétype 2 : Utilisateur Chat uniquement (utilise Copilot depuis < 3 mois, jamais configuré d'instructions)**
+- Attention aux confusions entre suggestions inline et Chat : les deux fonctionnent différemment
+- Question de révélation : "Tu as déjà eu Copilot qui te suggère exactement le bon nom de variable ?" — la réponse mène naturellement à l'Explicit Hierarchy
+- Cet archétype tire le plus de valeur de Phase 1 et Phase 4
+
+**Archétype 3 : Utilisateur avancé d'un autre outil (Cursor, Cody, Windsurf avec règles custom)**
+- Rediriger les comparaisons : "Chez PROSE, la valeur est dans la hiérarchie et la composition — pas seulement dans les règles"
+- Leur `cursorrules` ou `cody.json` existant est un bon point de départ pour Phase 1 : "Comment tu migres ça vers la hiérarchie PROSE ?"
+- Risque : ils peuvent aller trop vite et sauter les checkpoints. Ralentir en Phase 4.
+
+**Archétype 4 : Profil venant d'un autre IDE (Xcode, Android Studio sans Copilot)**
+- Distribuer une fiche VS Code minimum avant Phase 0 : Explorer (Ctrl+Shift+E), Terminal (Ctrl+`), Command Palette (Ctrl+Shift+P)
+- Copilot Chat : `Ctrl+Alt+I` (Windows/Linux) ou `Cmd+Alt+I` (macOS)
+- Pour iOS : vérifier Swift dans le PATH avant de commencer (`swift --version`)
+- Leur dire explicitement que VS Code est utilisé ici pour les features Copilot spécifiques (`.instructions.md`, `.prompt.md`) — pas par préférence générale
+
 ### Starter kit backup
 
 If a pair falls behind, they can pull individual files from the `solutions/` branch:
@@ -232,3 +255,19 @@ After the session, capture:
 - What was the most common mistake in the spec-writing exercise?
 
 Use these notes to iterate the dojo design before the next run.
+
+---
+
+## Copilot — Nouveautés 2025-2026 (à mentionner en rétro)
+
+> Ces fonctionnalités ne sont pas couvertes dans le dojo principal mais peuvent être mentionnées en rétro comme "prochaines étapes PROSE".
+
+| Feature | Impact sur PROSE | Disponibilité |
+|---|---|---|
+| **Copilot Coding Agent** (GitHub.com) | Peut lire une spec, créer une branche, implémenter et ouvrir une PR — Phase 4 entière en automatisé | Copilot Pro+ et Business |
+| **Instructions org-level** | Règles globales définies au niveau organisation — appliquées à tous les repos sans `copilot-instructions.md` local | Copilot Enterprise |
+| **`mode: "agent"` dans `.prompt.md`** | Exécute un prompt TDD et itère jusqu'aux tests verts | VS Code Copilot 2025+ |
+| **Context Providers** | Indexation sémantique du repo — la spec peut être trouvée automatiquement sans `#`-référencement | VS Code Copilot 2025+ (preview) |
+| **Copilot Extensions** | Intégration de sources externes (Jira, Confluence, bases ADEME) directement dans Chat | Marketplace 2025 |
+
+**Question bonus rétro :** *"Si Copilot Agent peut lire votre spec et ouvrir une PR, que reste-t-il à faire à l'équipe ?"* → La réponse : écrire et maintenir les artefacts PROSE. L'humain n'est plus dans la boucle d'implémentation — il est dans la boucle de spécification et de validation. C'est la vraie promesse de PROSE à long terme.
