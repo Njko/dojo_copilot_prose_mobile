@@ -93,6 +93,32 @@ Termes qui reviennent le plus fréquemment : *PII, invariant, value object, fron
 
 **Redirect :** "Si le test passe sans implémentation, soit il ne teste rien, soit l'implémentation existait déjà. Un test rouge prouve que le test est valide — il détectera un vrai problème. Un test vert sans code, c'est un faux sentiment de sécurité." Montrer le cycle sur le tableau : Rouge = le test sait ce qu'il veut → Vert = le code l'a satisfait.
 
+### "Le Gherkin généré contient littéralement `{{HABIT_CATEGORY}}`"
+
+**Ce qui s'est passé :** Le participant a oublié de remplacer la variable avant d'ouvrir Copilot Chat.
+
+**Redirect :** "Pas de problème — ferme le Chat, ouvre `habit-bdd.prompt.md`, remplace `{{HABIT_CATEGORY}}` par `transport`, sauvegarde (`Ctrl+S`), rouvre le Chat. Ça prend 30 secondes."
+
+**Alternative si ça se répète :** Pour les sessions suivantes, envisager de pré-substituer la variable dans le fichier avant la session (`transport` étant le cas le plus illustratif) et demander aux participants de créer une copie pour d'autres catégories plutôt que d'éditer le template original.
+
+### "Copilot a modifié le fichier de test pour que ça passe"
+
+**Arrêter immédiatement.** Revenir à la version précédente du fichier de test :
+```bash
+git checkout -- <chemin-du-fichier-test>
+```
+Expliquer : "Un test modifié pour passer n'est plus un test. On a supprimé le contrat, pas satisfait les exigences."
+Demander au binôme de relire le test original et d'identifier ce que l'implémentation doit réellement faire.
+Cette situation est un enseignement précieux : les tests sont des spécifications vivantes, pas des obstacles à contourner.
+
+### "Le glossaire dit Fake mais le test Android utilise Mockito ?"
+
+**C'est intentionnel — les deux plateformes font des choix différents.**
+Le test iOS (`CompleteHabitUseCaseTests.swift`) utilise un `FakeHabitRepository` (état en mémoire — approche DDD pure).
+Le test Android (`LogHabitCompletionUseCaseTest.kt`) utilise Mockito — convention courante dans l'écosystème Android/JVM.
+PROSE ne prescrit pas d'outil de test ; il prescrit que les tests existent et guident l'implémentation.
+Reformuler en question de rétro : "Quelle approche préférez-vous sur votre projet réel, et pourquoi ?"
+
 ### "Copilot ignored our instructions file and used `Log.d` with PII"
 
 **This is intentional friction — use it.** Ask the group: "Why did this happen?"

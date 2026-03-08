@@ -55,12 +55,13 @@ Crashlytics.crashlytics().setCustomValue(habits.count, forKey: "habit_count") //
   - Android: `EncryptedSharedPreferences` or `Room` with `SQLCipher`
   - iOS: `Keychain` for secrets; `FileProtection.complete` for documents
 - Do not store `FootprintBaseline` or `UserProfile` in plain `SharedPreferences` or `UserDefaults`
+- Authentication tokens (OAuth access tokens, refresh tokens, session tokens): store ONLY in Android Keystore-backed EncryptedSharedPreferences or iOS Keychain — NEVER in plain SharedPreferences, UserDefaults, or Room without SQLCipher
 
 ## Network Security
 
 - All HTTP clients must use certificate pinning:
   - Android (OkHttp): reference `CertificatePinner` — flag any `OkHttpClient.Builder()` without it
-  - iOS (URLSession): reference `URLSessionDelegate` with pinning — flag any `URLSession.shared` used for authenticated calls
+  - iOS (URLSession): reference `URLSessionDelegate` with pinning — flag any direct use of `URLSession.shared` or `OkHttpClient()` without a custom configuration — always use a preconfigured client with certificate pinning policy
   - > ⚠️ **Note opérationnelle :** le certificate pinning peut provoquer un outage si le certificat expire sans rotation préparée. Ne l'activer qu'avec une politique de rotation documentée (runbook).
 - All API calls must be HTTPS — flag any `http://` URL literal
 

@@ -51,8 +51,8 @@ Participants will build the **domain core** of EcoTrack — not a full app, but 
 | **frontmatter** | Bloc de métadonnées YAML délimité par `---` en tête d'un fichier Markdown. Copilot lit le champ `applyTo` pour savoir à quels fichiers appliquer les instructions. |
 | **`Sendable`** (Swift) | Protocole Swift 6 garantissant qu'un type est thread-safe. Les `struct` avec uniquement des `let` le sont implicitement. |
 | **`Result<T>`** (Kotlin/Swift) | Type qui encapsule soit une valeur de succès, soit une erreur typée — sans `try/catch`. Préféré aux exceptions pour les erreurs métier attendues. |
-| **Fake** | Implémentation de test avec un état interne réel (ex : `InMemoryHabitRepository` stocke en mémoire). Ne vérifie pas les appels. C'est ce qu'utilise ce dojo. |
-| **Mock** | Objet de test qui vérifie que certaines méthodes ont été appelées avec certains arguments (ex : Mockito, MockK). Utilisé pour tester des interactions, pas un état. |
+| **Fake** | Implémentation de test avec un état interne réel (ex : `InMemoryHabitRepository` stocke en mémoire). Ne vérifie pas les appels. Utilisé côté **iOS** dans ce dojo. |
+| **Mock** | Objet de test qui vérifie que certaines méthodes ont été appelées avec certains arguments (ex : Mockito, MockK). Utilisé pour tester des interactions, pas un état. Utilisé côté **Android** dans ce dojo (`LogHabitCompletionUseCaseTest.kt` utilise Mockito). |
 | **Stub** | Implémentation minimale qui retourne des valeurs codées en dur, sans logique ni vérification. Le `TODO("Implement use case")` en Phase 4 est un stub. |
 
 ---
@@ -121,6 +121,9 @@ cd ecotrack
 > Dans Xcode, cette intégration n'est pas disponible et les fichiers d'instructions seront ignorés.
 
 **iOS — Prérequis VS Code (vérifier avant de démarrer) :**
+
+> **Bonne nouvelle :** Dans ce dojo, tu ne compiles pas une app, tu ne lances pas de simulateur. Tu fais uniquement du **Swift pur dans la couche domain** — aucune UI, aucun framework iOS. VS Code + `swift test` en terminal est exactement ce qu'il faut. Tu n'as pas besoin d'Xcode ici.
+
 - Extension `sswg.swift-lang` installée (`Cmd+Shift+P` → Extensions → "Swift Language")
 - `swift` dans le PATH : `swift --version` dans le terminal doit répondre
 - Lancer les tests : `cd ecotrack-ios && swift test`
@@ -362,6 +365,8 @@ Feature: Transport Habit Tracking
 
 **The "just-in-time" insight:** The prompt file pulled in domain context and security context only when it was time to write BDD scenarios. It did not dump all of that context into every Copilot interaction all day long.
 
+**Du Gherkin aux tests — le pont :** Les scénarios que vous venez de générer ne deviennent pas automatiquement des tests XCTest ou JUnit. Dans ce dojo, le fichier `ecotrack-ios/Tests/EcoTrackTests/Domain/HabitBDDTests.swift` montre comment un scénario Gherkin se traduit en test BDD lisible — avec un DSL privé (`givenACyclingHabitWithNoCompletions()`, `whenCompletingHabit()`, `thenStreakEquals()`). Regardez ce fichier 30 secondes avant Phase 4 : vous verrez votre Gherkin transformé en Swift. La Phase 4 pousse un cran plus loin — du test d'entité (`Habit.completing()`) au test de use case (`CompleteHabitUseCase.execute()`).
+
 ---
 
 ---
@@ -394,9 +399,25 @@ Le repo contient déjà deux cibles TDD prêtes-à-l'emploi, avec un stub qui é
 | Android | `LogHabitCompletionUseCaseTest.kt` | méthode `execute()` dans le stub en bas du fichier | `TODO("Implement use case")` |
 | iOS | `CompleteHabitUseCaseTests.swift` | `CompleteHabitUseCase.execute(habitID:on:note:)` | `throw HabitError.habitNotFound(habitID)` |
 
+> **Note — Mock vs Fake dans ce dojo :** Le fichier de test Android utilise Mockito (`mock()`, `whenever()`) par pragmatisme — les dépendances sont nombreuses et un fake complet dépasserait le temps disponible. Le fichier de test iOS utilise un `InMemoryHabitRepository` (Fake conforme à la définition du glossaire). Les deux approches sont valides ; le choix dépend de ce qu'on teste (interaction vs état). Voyez cela comme un point de discussion en rétro : "Quel pattern choisiriez-vous dans votre équipe, et pourquoi ?"
+
 > **Chemin complet Android :** `ecotrack-android/app/src/test/kotlin/com/ecotrack/domain/usecase/LogHabitCompletionUseCaseTest.kt`
 
 Le participant n'a pas à créer les tests. Il assemble les artefacts PROSE produits dans les phases précédentes et demande à Copilot de compléter l'implémentation.
+
+### Du Gherkin aux tests — le pont (2 min)
+
+> En Phase 3, vous avez généré des scénarios Gherkin (Given/When/Then). En Phase 4, vous travaillez sur des tests unitaires qui échouent. **Ce saut n'est pas magique.** Voici comment il se fait concrètement.
+
+Jetez un œil au fichier `ecotrack-ios/Tests/EcoTrackTests/Domain/HabitBDDTests.swift`. Il montre comment un scénario Gherkin devient un test lisible :
+
+| Gherkin (Phase 3) | Test unitaire (Phase 4) |
+|---|---|
+| `Given I have a cycling habit with no prior completions` | `givenACyclingHabitWithNoCompletions()` |
+| `When I mark it as complete today` | `whenCompletingHabit(habit, on: Date())` |
+| `Then my streak becomes 1` | `thenStreakEquals(1, for: completedHabit)` |
+
+Les noms Given/When/Then du Gherkin deviennent des méthodes de test. Le scénario reste lisible. Les tests de `CompleteHabitUseCaseTests.swift` / `LogHabitCompletionUseCaseTest.kt` que vous allez utiliser suivent la même logique — ils décrivent un comportement, pas une implémentation. Pour un exemple complet BDD→TDD sur le `CarbonCalculator`, voir le **Bonus Round**.
 
 ---
 
@@ -418,6 +439,8 @@ Le participant n'a pas à créer les tests. Il assemble les artefacts PROSE prod
 **Message pédagogique :** *"Les tests savent ce qu'ils veulent. L'implémentation ne sait pas encore quoi faire. Votre job : assembler les artefacts PROSE pour que Copilot comble l'écart."*
 
 ---
+
+> **Règle du dojo à partir d'ici :** Copilot touche **uniquement les fichiers d'implémentation**. Les fichiers de tests sont votre spec — ne les modifiez pas, ne demandez pas à Copilot de les simplifier pour les faire passer. Si un test est difficile à satisfaire, le problème est dans l'implémentation, pas dans le test. Un test qu'on modifie pour le faire passer n'est plus un test.
 
 ### Step 4A — Assembler le contexte PROSE dans Copilot Chat (3 min)
 
@@ -497,6 +520,18 @@ Stratégies rapides (dans cet ordre) :
 2. **Réduire le scope** → demander une seule étape : *"Implement only the fetchHabit call and the null check"*
 3. **Demander d'expliquer** avant d'accepter : *"Explain why line X satisfies test Y"*
 4. **Ajouter un artefact manquant** → si Copilot utilise un mauvais nom de type, vérifier qu'il a bien `#test-file` en contexte
+
+### Step 4C — Refactor (si temps disponible — 2 min)
+
+Le cycle TDD est **rouge → vert → refactor**. Votre implémentation passe les tests — c'est le vert. Le refactor est facultatif mais pédagogiquement important :
+
+1. Relisez l'implémentation générée : y a-t-il des duplications ? Des noms imprécis ? Une logique trop imbriquée ?
+2. Faites un petit refactoring (renommer, extraire une variable, simplifier une condition)
+3. Relancez les tests — s'ils passent encore, le refactor est sûr
+
+**Message clé :** Les tests sont votre filet de sécurité. Vous pouvez refactorer en confiance parce que le rouge détectera toute régression. C'est la promesse du TDD.
+
+> Si vous manquez de temps, nommez simplement cette étape à voix haute : "Dans un vrai sprint, l'étape suivante serait le refactor — et c'est là que la valeur des tests se révèle pleinement."
 
 ---
 
