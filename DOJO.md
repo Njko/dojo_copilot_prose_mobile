@@ -1,7 +1,7 @@
 # Coding Dojo: PROSE Methodology with GitHub Copilot
-## "EcoTrack" — A Mobile App for Personal Carbon Footprint Tracking
+## "EcoTrack" — Une app mobile pour mesure l'impact carbonne
 
-> **Duration:** 60 minutes
+> **Durée:** 60 minutes
 > **Audience:** Android & iOS developers (mixed pairs encouraged)
 > **Tools:** GitHub Copilot (Chat + Completions), **VS Code** (requis — voir note JetBrains ci-dessous)
 > **Level:** Intermediate — participants know their mobile stack; PROSE is new to them
@@ -298,7 +298,7 @@ applyTo: "src/**/domain/**,**/domain/**,**/*Domain*.kt,**/Sources/EcoTrack/Domai
 | **Domain iOS — ce monorepo** | `ecotrack-ios/Sources/EcoTrack/Domain/**/*.swift` |
 
 > **Syntaxe :** patterns séparés par des virgules **sans espace** — `**/*.kt,**/*.swift` et non `**/*.kt, **/*.swift`.
-> **Type :** glob patterns uniquement (style gitignore / minimatch) — pas de regex.
+> **Type :** [glob patterns](https://code.visualstudio.com/docs/editor/glob-patterns) uniquement (style gitignore / minimatch) — pas de regex.
 
 > **Piège fréquent :** sans ce bloc `---…---` en première ligne, Copilot n'activera jamais ce fichier automatiquement — même s'il existe sur disque. Le fichier reste accessible manuellement via `#` dans le Chat, mais ne sera jamais injecté par défaut. Aucun message d'erreur n'est affiché. Si les règles semblent ignorées, vérifiez le frontmatter en premier.
 
