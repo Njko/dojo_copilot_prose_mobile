@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Native Development - GitHub Copilot en Entreprise</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/theme/night.css">
+    <style>
+        :root {
+            --r-heading-color: #58a6ff;
+            --r-link-color: #58a6ff;
+        }
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+        }
+        .reveal .slides section {
+            text-align: left;
+        }
+        .reveal .slides section.center {
+            text-align: center;
+        }
+        .reveal pre {
+            width: 100%;
+            font-size: 0.55em;
+        }
+        .reveal table {
+            font-size: 0.7em;
+            margin: 0 auto;
+        }
+        .reveal table th {
+            background-color: #58a6ff;
+            color: #0d1117;
+        }
+        .reveal table td, .reveal table th {
+            padding: 0.4em 0.8em;
+            border: 1px solid #30363d;
+        }
+        .reveal ul {
+            display: block;
+        }
+        .reveal li {
+            margin-bottom: 0.5em;
+        }
+        .problem-box {
+            background: linear-gradient(135deg, #f8514966, #da363366);
+            border-left: 4px solid #f85149;
+            padding: 1em;
+            border-radius: 8px;
+            margin: 0.5em 0;
+        }
+        .solution-box {
+            background: linear-gradient(135deg, #3fb95066, #2ea04366);
+            border-left: 4px solid #3fb950;
+            padding: 1em;
+            border-radius: 8px;
+            margin: 0.5em 0;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #58a6ff33, #1f6feb33);
+            border-left: 4px solid #58a6ff;
+            padding: 1em;
+            border-radius: 8px;
+            margin: 0.5em 0;
+        }
+        .prose-letter {
+            display: inline-block;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #58a6ff;
+            width: 1.5em;
+        }
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2em;
+        }
+        .emoji {
+            font-size: 3em;
+            margin-bottom: 0.3em;
+        }
+        .small {
+            font-size: 0.7em;
+            color: #8b949e;
+        }
+        code {
+            background: #30363d;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            color: #79c0ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Slide de titre -->
+            <section class="center">
+                <h1>AI Native Development Lab</h1>
+                <h3>Industrialiser GitHub Copilot en Entreprise</h3>
+            </section>
+
+            <!-- Le Problème -->
+            <section>
+                <section class="center">
+                    <h2>Le Problème</h2>
+                    <p class="emoji">🤔</p>
+                    <p>Pourquoi Copilot fonctionne bien pour les projets perso<br>mais galère sur les codebases d'entreprise ?</p>
+                </section>
+
+                <section>
+                    <h3>La réalité en entreprise</h3>
+                    <div class="problem-box">
+                        <p><strong>Copilot ne connaît pas les règles de votre équipe :</strong></p>
+                        <ul>
+                            <li>Ignore les patterns et conventions spécifiques à l'équipe</li>
+                            <li>Utilise des librairies interdites (violations sécurité/conformité)</li>
+                            <li>Génère du code techniquement correct mais contextuellement faux</li>
+                            <li>Produit des résultats incohérents selon les développeurs</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Le problème du "Vibe Coding"</h3>
+                    <div class="two-columns">
+                        <div>
+                            <p><strong>Prompts improvisés :</strong></p>
+                            <ul>
+                                <li>Demander et espérer le meilleur</li>
+                                <li>Ré-expliquer le contexte à chaque fois</li>
+                                <li>Qualité incohérente</li>
+                                <li>Connaissances piégées dans l'historique</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p><strong>Résultat :</strong></p>
+                            <ul>
+                                <li>Marche pour les tâches simples</li>
+                                <li>Échoue à l'échelle</li>
+                                <li>Impossible d'imposer des standards</li>
+                                <li>Pas de reproductibilité</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- La Solution -->
+            <section>
+                <section class="center">
+                    <h2>La Solution</h2>
+                    <p class="emoji">💡</p>
+                    <p><strong>AI Native Development</strong></p>
+                    <p>Traiter les directives IA comme des artefacts d'ingénierie<br>avec la même rigueur que le code</p>
+                </section>
+
+                <section>
+                    <h3>Principes du développement AI Native</h3>
+                    <div class="solution-box">
+                        <ul>
+                            <li><strong>Codifier le contexte</strong> — Les standards vivent dans des fichiers versionnés</li>
+                            <li><strong>Automatiser l'application</strong> — Le contexte s'applique automatiquement via des patterns</li>
+                            <li><strong>Standardiser les workflows</strong> — Commandes réutilisables pour les tâches courantes</li>
+                            <li><strong>Spécialiser les agents</strong> — Personas IA dédiés avec des responsabilités claires</li>
+                            <li><strong>Packager pour l'échelle</strong> — Partager les capacités entre équipes</li>
+                        </ul>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Framework PROSE -->
+            <section>
+                <section class="center">
+                    <h2>Les principes PROSE</h2>
+                    <p>Une approche systématique pour des workflows IA fiables</p>
+                </section>
+
+                <section>
+                    <h3>PROSE : Cinq piliers</h3>
+                    <p><span class="prose-letter">P</span> <strong>rogressive Disclosure</strong> — Utilisation de contexte efficacement</p>
+                    <p><span class="prose-letter">R</span> <strong>educed Scope</strong> — Complexité générable</p>
+                    <p><span class="prose-letter">O</span> <strong>rchestrated Composition</strong> — Flexibité, réutilisabilité</p>
+                    <p><span class="prose-letter">S</span> <strong>afety Boundaries</strong> — Reliability, security, verifiability</p>
+                    <p><span class="prose-letter">E</span> <strong>xplicit Hierarchy</strong> — Modularité, héritage</p>
+                </section>
+
+                <section>
+                    <h3>PROSE : Mémotechnique</h3>
+                    <p><span class="prose-letter">P</span> <strong>rompts</strong> — Commandes réutilisables invoquées explicitement</p>
+                    <p><span class="prose-letter">R</span> <strong>eliability</strong> — Résultats cohérents et prévisibles</p>
+                    <p><span class="prose-letter">O</span> <strong>rchestration</strong> — Workflows multi-agents avec handoffs</p>
+                    <p><span class="prose-letter">S</span> <strong>kills</strong> — Capacités packagées découvertes par intention</p>
+                    <p><span class="prose-letter">E</span> <strong>ngineering</strong> — Standards d'équipe auto-appliqués</p>
+                </section>
+
+                <section>
+                    <h3>PROSE n'est pas</h3>
+                    <ul>
+                        <li><strong>Un framework</strong> — PROSE est un "style" comme REST</li>
+                        <li><strong>Un format de fichier</strong> — Les primitives sont une implémentation du style</li>
+                        <li><strong>Spécifique à un modèle</strong> — LLM/Agent Agnostic</li>
+                        <li><strong>Spécifique à un outil</strong> — VSCode, XCode, ... les contraintes sont universelles</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Ce que PROSE Résoud</h3>
+                    <div class="solution-box">
+                        <ul>
+                            <li><strong>Le "context overload"</strong> — Avec le dépassement des limites de la fenêtre de contexte, les modèles perdent le fil de la discussion</li>
+                            <li><strong>Le déficit d'accompagnement</strong> — Des demandes vagues induisent des réponses vagues. Comment rendre le résultat prévisible? Répétable?</li>
+                            <li><strong>La fin du prompt engineering?</strong> — On arrête avec les interactions en one shot, et on pense workflows</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>Les quatre primitives</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Primitive</th>
+                                <th>Type de fichier</th>
+                                <th>Objectif</th>
+                                <th>Auto-appliqué ?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Instructions</strong></td>
+                                <td><code>.instructions.md</code></td>
+                                <td>Standards via patterns glob</td>
+                                <td>Oui</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Prompts</strong></td>
+                                <td><code>.prompt.md</code></td>
+                                <td>/commandes réutilisables</td>
+                                <td>Non</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Agents</strong></td>
+                                <td><code>.agent.md</code></td>
+                                <td>Personas IA spécialisés</td>
+                                <td>Non</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Skills</strong></td>
+                                <td><code>SKILL.md</code></td>
+                                <td>Capacités packagées</td>
+                                <td>Découvert</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </section>
+
+            <!-- Instructions en détail -->
+            <section>
+                <section class="center">
+                    <h2>Instructions</h2>
+                    <p><code>.instructions.md</code></p>
+                    <p>Standards d'équipe auto-appliqués via patterns glob</p>
+                </section>
+
+                <section>
+                    <h3>Comment fonctionnent les Instructions</h3>
+                    <div class="highlight-box">
+                        <p><strong>Point clé :</strong> Les instructions sont automatiquement incluses dans le contexte de Copilot quand vous travaillez sur des fichiers correspondants.</p>
+                    </div>
+                    <pre><code>---
+applyTo: "**/*.py"
+---
+# Standards Python
+
+- Utiliser structlog pour tous les logs (jamais print ou logging stdlib)
+- Toutes les fonctions nécessitent des docstrings Google-style
+- Utiliser Pydantic pour la validation des données
+- Suivre les patterns existants dans la codebase</code></pre>
+                </section>
+
+                <section>
+                    <h3>Avantages des Instructions</h3>
+                    <ul>
+                        <li><strong>Zéro friction</strong> — Pas de contexte manuel nécessaire</li>
+                        <li><strong>Cohérence</strong> — Mêmes standards pour tous</li>
+                        <li><strong>Versionné</strong> — Les standards évoluent avec le code</li>
+                        <li><strong>Scopé</strong> — Règles différentes selon les types de fichiers</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- Prompts en détail -->
+            <section>
+                <section class="center">
+                    <h2>Prompts</h2>
+                    <p><code>.prompt.md</code></p>
+                    <p>Commandes réutilisables invoquées avec <code>/nom-commande</code></p>
+                </section>
+
+                <section>
+                    <h3>Comment fonctionnent les Prompts</h3>
+                    <pre><code>---
+mode: agent
+description: Génère une documentation complète pour les modules Python
+---
+# Générateur de Documentation
+
+## Votre tâche
+Analyser le fichier courant et générer la documentation en suivant nos
+[standards de documentation](../instructions/documentation-standards.instructions.md).
+
+## Étapes
+1. Lire le fichier courant entièrement
+2. Identifier toutes les fonctions, classes et méthodes publiques
+3. Générer des docstrings Google-style pour chacune
+4. Ajouter la documentation au niveau module
+5. Inclure des exemples d'utilisation si approprié</code></pre>
+                </section>
+
+                <section>
+                    <h3>Avantages des Prompts</h3>
+                    <ul>
+                        <li><strong>Reproductibilité</strong> — Même workflow à chaque fois</li>
+                        <li><strong>Découvrabilité</strong> — Tapez <code>/</code> pour voir les commandes disponibles</li>
+                        <li><strong>Composabilité</strong> — Référencer des fichiers d'instructions</li>
+                        <li><strong>Partageabilité</strong> — Accès pour toute l'équipe via git</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- Agents en détail -->
+            <section>
+                <section class="center">
+                    <h2>Agents</h2>
+                    <p><code>.agent.md</code></p>
+                    <p>Personas IA spécialisés avec handoffs</p>
+                </section>
+
+                <section>
+                    <h3>Pattern d'architecture Agent</h3>
+                    <div class="two-columns">
+                        <div class="highlight-box">
+                            <p><strong>Agent Analyseur</strong></p>
+                            <ul>
+                                <li>Accès lecture seule</li>
+                                <li>Analyse approfondie du code</li>
+                                <li>Utilise les outils search/usages</li>
+                                <li>Produit un rapport structuré</li>
+                            </ul>
+                        </div>
+                        <div class="solution-box">
+                            <p><strong>Agent Générateur</strong></p>
+                            <ul>
+                                <li>Accès écriture</li>
+                                <li>Création de fichiers ciblée</li>
+                                <li>Suit le rapport d'analyse</li>
+                                <li>Responsabilité unique</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="small" style="text-align: center; margin-top: 1em;">Le bouton Handoff permet un transfert fluide entre agents</p>
+                </section>
+
+                <section>
+                    <h3>Pourquoi séparer les Agents ?</h3>
+                    <div class="solution-box">
+                        <ul>
+                            <li><strong>Séparation des responsabilités</strong> — Analyse vs. génération</li>
+                            <li><strong>Sécurité</strong> — Limiter l'accès écriture à l'agent spécialisé</li>
+                            <li><strong>Qualité</strong> — Meilleurs résultats avec des tâches ciblées</li>
+                            <li><strong>Auditabilité</strong> — Points de contrôle clairs pour la revue</li>
+                        </ul>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Skills en détail -->
+            <section>
+                <section class="center">
+                    <h2>Skills</h2>
+                    <p>Capacités packagées découvertes par intention</p>
+                </section>
+
+                <section>
+                    <h3>Passage à l'échelle avec les Skills</h3>
+                    <pre><code>
+---
+name: document-generator
+description: Génère une documentation complète pour les modules Python
+license: MIT
+disable-model-invocation : false
+---                        
+# Skill Générateur de Documentation
+
+## Description
+Génère une documentation complète suivant les standards d'équipe.
+
+## Quand l'utiliser
+- L'utilisateur demande de "documenter ce code"
+- L'utilisateur veut "ajouter des docstrings"
+- L'utilisateur demande une "documentation API"
+
+## Fichiers inclus
+- instructions/documentation-standards.instructions.md
+- prompts/generate-docs.prompt.md
+- agents/doc-analyzer.agent.md
+- agents/doc-writer.agent.md</code></pre>
+                </section>
+
+                <section>
+                    <h3>Les Skills permettent</h3>
+                    <ul>
+                        <li><strong>Découverte par intention</strong> — L'agent trouve le bon skill automatiquement</li>
+                        <li><strong>Partage inter-équipes</strong> — Packager et distribuer via APM / Skills.sh / etc.</li>
+                        <li><strong>Versioning</strong> — Les skills évoluent indépendamment</li>
+                        <li><strong>Composition</strong> — Construire sur les skills existants</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Les Skills contiennent</h3>
+                    <ul>
+                        <li><strong>Un fichier racine</strong> — SKILL.md qui décrit le coeur</li>
+                        <li><strong>Des instructions</strong> — Des compléments de règles de bonne pratique à appliquer au chargement du skill</li>
+                        <li><strong>Des prompts</strong> — Les tâches répétables que peut utiliser le skill</li>
+                        <li><strong>Des références</strong> — exemples que l'agent peut charger dans le contexte si besoin</li>
+                        <li><strong>Des scripts</strong> — des scripts exécutables pour automatiser certaines tâches</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Skills</h2>
+                    <p>Capacités packagées découvertes par intention?</p>
+                    <p>Comment s'assurer qu'elles sont bien découvertes?</p>
+                </section>
+            </section>
+
+            <!-- Leçons clés -->
+            <section>
+                <section class="center">
+                    <h2>Leçons clés</h2>
+                    <p class="emoji">🎓</p>
+                </section>
+
+                <section>
+                    <h3>Leçon 1 : Le contexte est roi</h3>
+                    <div class="highlight-box">
+                        <p>La qualité des résultats IA est directement proportionnelle à la qualité du contexte fourni.</p>
+                    </div>
+                    <ul>
+                        <li>Ne comptez pas sur les prompts improvisés</li>
+                        <li>Codifiez vos standards dans des fichiers versionnés</li>
+                        <li>Laissez l'automatisation gérer l'injection de contexte</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Leçon 2 : Séparation des responsabilités</h3>
+                    <div class="highlight-box">
+                        <p>Les agents spécialisés surpassent les prompts généralistes.</p>
+                    </div>
+                    <ul>
+                        <li>Les analyseurs doivent analyser (lecture seule)</li>
+                        <li>Les générateurs doivent générer (écritures ciblées)</li>
+                        <li>Les handoffs permettent des points de contrôle qualité</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Leçon 3 : Construire pour l'échelle</h3>
+                    <div class="highlight-box">
+                        <p>Ce qui marche pour un développeur doit marcher pour toute l'équipe.</p>
+                    </div>
+                    <ul>
+                        <li>Packager les workflows en Skills</li>
+                        <li>Distribuer via APM CLI</li>
+                        <li>Activer la découverte par intention</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h3>Leçon 4 : Accepter les contraintes</h3>
+                    <div class="highlight-box">
+                        <p>La réalité entreprise inclut du code legacy, des règles de conformité et des frontières d'équipe.</p>
+                    </div>
+                    <ul>
+                        <li>Documenter ce qui ne peut pas changer (NE PAS MODIFIER)</li>
+                        <li>Encoder les exigences de conformité dans les instructions</li>
+                        <li>Travailler avec les patterns existants, pas contre eux</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- Anti-patterns -->
+            <section>
+                <section class="center">
+                    <h2>Anti-patterns à éviter</h2>
+                    <p class="emoji">⚠️</p>
+                </section>
+
+                <section>
+                    <h3>Ce qu'il ne faut pas faire</h3>
+                    <div class="problem-box">
+                        <ul>
+                            <li><strong>Vibe coding</strong> — Prompts improvisés sans structure</li>
+                            <li><strong>Dump de contexte</strong> — Coller des fichiers entiers dans le chat</li>
+                            <li><strong>Agents fourre-tout</strong> — Agents génériques pour tout</li>
+                            <li><strong>Ignorer les patterns existants</strong> — Laisser l'IA inventer de nouvelles conventions</li>
+                            <li><strong>Sauter l'analyse</strong> — Générer sans comprendre</li>
+                        </ul>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Ressources -->
+            <section>
+                <h3>Ressources</h3>
+                <ul>
+                    <li><strong>Framework PROSE</strong><br>
+                        <code>danielmeppiel.github.io/awesome-ai-native</code></li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            center: false,
+            width: 1280,
+            height: 720,
+            margin: 0.1
+        });
+    </script>
+</body>
+</html>
